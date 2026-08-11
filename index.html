@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f4f7ef" />
+  <title>Fitly — your plan, made for you</title>
+  <meta name="description" content="Fitly is a personalized AI workout and meal planner for student life." />
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    .ai-drawer {
+      display: grid !important;
+      grid-template-rows: auto auto auto minmax(0, 1fr) auto !important;
+      overflow: hidden !important;
+      max-height: calc(100vh - 22px) !important;
+      min-height: 0 !important;
+    }
+    .ai-drawer .chat-messages {
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: flex-start !important;
+      gap: 10px !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      min-height: 0 !important;
+      height: 100% !important;
+      max-height: 100% !important;
+      margin: 0 !important;
+      padding-right: 4px !important;
+    }
+    .ai-drawer .chat-messages::-webkit-scrollbar {
+      width: 10px !important;
+    }
+    .ai-drawer .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,.22) !important;
+      border-radius: 999px !important;
+    }
+    .ai-drawer .chat-messages::-webkit-scrollbar-track {
+      background: rgba(255,255,255,.05) !important;
+    }
+  </style>
+  <script src="https://accounts.google.com/gsi/client" async></script>
+  <script src="./workout-engine.js"></script>
+  <script src="./script.js" defer></script>
+</head>
+<body class="onboarding-active">
+  <svg class="icon-sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="icon-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+    <symbol id="icon-dumbbell" viewBox="0 0 24 24"><path d="M6 9v6M3.5 10.5v3M18 9v6M20.5 10.5v3M6 12h12M8 7v10M16 7v10"/></symbol>
+    <symbol id="icon-leaf" viewBox="0 0 24 24"><path d="M20.5 3.5C12 3.5 5.2 6 4 12.3c-.8 4 2 7 5.7 7.1C16.2 19.6 20.5 12 20.5 3.5Z"/><path d="M4 20.5c2.6-4.7 6.4-7.5 11-10"/></symbol>
+    <symbol id="icon-chart" viewBox="0 0 24 24"><path d="M4 19V5M4 19h17"/><path d="m7 15 3-4 3 2 5-6"/></symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 15 .1.1a2 2 0 0 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 0 1-4 0v-.2a2 2 0 0 0-3.4-1.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A2 2 0 0 0 1.6 12a2 2 0 0 1 0-4h.2a2 2 0 0 0 1.4-3.4l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A2 2 0 0 0 9.4.4h.2a2 2 0 0 1 4 0v.2A2 2 0 0 0 17 2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A2 2 0 0 0 21.2 8h.2a2 2 0 0 1 0 4h-.2a2 2 0 0 0-1.8 3Z" transform="translate(1 1) scale(.92)"/></symbol>
+    <symbol id="icon-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.4 2.4 0 1 1 4.6 1c-.7 1.3-2.3 1.4-2.3 3M12 16.8h.01"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="icon-bell" viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="icon-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+    <symbol id="icon-spark" viewBox="0 0 24 24"><path d="m12 2 1.7 6.3L20 10l-6.3 1.7L12 18l-1.7-6.3L4 10l6.3-1.7L12 2ZM19 16l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16Z"/></symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol>
+    <symbol id="icon-play" viewBox="0 0 24 24"><path d="m9 6 9 6-9 6V6Z"/></symbol>
+    <symbol id="icon-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="icon-flame" viewBox="0 0 24 24"><path d="M12.5 21c4.1 0 6.5-2.6 6.5-6 0-2.7-1.4-5-4.2-7.7.1 2.1-.8 3.4-2 4.1.2-3.7-1.7-6.5-4.9-8.4.2 3.2-2.4 5.6-2.4 9.3 0 4.9 3 8.7 7 8.7Z"/></symbol>
+    <symbol id="icon-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  </svg>
+
+  <section class="onboarding-screen" id="onboarding-screen" aria-labelledby="onboarding-heading">
+    <div class="onboarding-orbit orbit-a"></div><div class="onboarding-orbit orbit-b"></div>
+    <div class="onboarding-shell">
+      <div class="onboarding-brand"><a class="brand" href="#"><span class="brand-mark"><span></span><span></span><span></span></span><span>fitly</span></a><span class="brand-beta">BETA</span></div>
+      <div class="onboarding-progress"><span class="onboarding-progress-dot is-current"></span><i></i><span class="onboarding-progress-dot"></span></div>
+      <div class="onboarding-step onboarding-welcome is-active" data-onboarding-step="welcome">
+        <span class="onboarding-kicker"><span class="spark-badge"><svg class="icon"><use href="#icon-spark"/></svg></span> YOUR PERSONAL FITNESS COPILOT</span>
+        <h1 id="onboarding-heading">Your plan starts<br/><em>with you.</em></h1>
+        <p>Tell us a little about your body, your goals, and your real life. Fitly will turn it into a plan you can actually keep.</p>
+        <div class="google-login-wrap"><div id="google-signin-button" class="google-signin-button" hidden></div><a class="google-login" href="/auth/google"><span class="google-g">G</span><span>Continue with Google</span><svg class="icon"><use href="#icon-arrow"/></svg></a><span class="login-note">Secure sign-in · We only ask for your basic profile</span></div>
+        <button class="demo-link" data-onboarding-demo>Continue in demo mode <svg class="icon"><use href="#icon-arrow"/></svg></button>
+        <div class="onboarding-trust"><span><svg class="icon"><use href="#icon-check"/></svg> No judgement</span><span><svg class="icon"><use href="#icon-check"/></svg> Student-friendly</span><span><svg class="icon"><use href="#icon-check"/></svg> Your data stays yours</span></div>
+      </div>
+      <div class="onboarding-step onboarding-profile" data-onboarding-step="profile" hidden>
+        <div class="signed-in-note" hidden><span class="online-dot is-live"></span> Signed in as <strong class="signed-in-name"></strong></div>
+        <span class="onboarding-kicker">LET'S MAKE IT PERSONAL</span>
+        <h1>Build your<br/><em>starting point.</em></h1>
+        <p>These details help Fitly keep your workouts realistic and your meals aligned. You can change them anytime.</p>
+        <form class="onboarding-form" id="onboarding-form">
+          <div class="form-grid"><label><span>Age</span><input name="age" type="number" min="13" max="100" placeholder="21" required/></label><label><span>Sex for estimate</span><select name="sex" required><option value="" selected disabled>Select</option><option value="female">Female</option><option value="male">Male</option><option value="unspecified">Prefer not to say</option></select></label><label><span>Weight <small>kg</small></span><input name="weight" type="number" min="25" max="350" step="0.1" placeholder="65" required/></label><label><span>Height <small>cm</small></span><input name="height" type="number" min="100" max="240" placeholder="170" required/></label></div>
+          <div class="form-grid"><label><span>Activity level</span><select name="activity" required><option value="" selected disabled>Select</option><option value="sedentary">Sedentary · 1.20</option><option value="light">Light · 1.375</option><option value="moderate">Moderate · 1.55</option><option value="very">Very active · 1.725</option><option value="extreme">Extremely active · 1.90</option></select></label><label><span>Training days <small>/ week</small></span><input name="trainingDays" type="number" min="0" max="7" placeholder="3"/></label><label><span>Daily steps <small>optional</small></span><input name="dailySteps" type="number" min="0" max="100000" placeholder="7000"/></label><label><span>Body fat <small>% optional</small></span><input name="bodyFat" type="number" min="3" max="70" step="0.1" placeholder="20"/></label></div>
+          <div class="form-grid"><label><span>Experience</span><select name="experience"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label><label><span>Session length <small>minutes</small></span><input name="sessionMinutes" type="number" min="15" max="120" step="5" placeholder="30"/></label><label><span>Diet style</span><select name="diet"><option value="omnivore">Omnivore</option><option value="vegetarian">Vegetarian</option><option value="vegan">Vegan</option></select></label><label><span>Target body fat <small>% optional</small></span><input name="targetBodyFat" type="number" min="5" max="60" step="0.1" placeholder="15"/></label></div>
+          <div class="form-grid"><label><span>Typical sleep <small>hours</small></span><input name="sleepHours" type="number" min="0" max="16" step="0.5" placeholder="7.5"/></label><label><span>Sleep quality</span><select name="sleepQuality"><option value="okay">Okay</option><option value="good">Good</option><option value="poor">Poor</option></select></label><label><span>Typical fatigue <small>1–5</small></span><input name="fatigue" type="number" min="1" max="5" placeholder="2"/></label><label><span>Typical stress <small>1–5</small></span><input name="stress" type="number" min="1" max="5" placeholder="2"/></label></div>
+          <div class="form-section-label">YOUR TRAINING SETUP <small>These shape exercise selection</small></div>
+          <div class="form-grid"><label><span>Current fitness level</span><select name="fitnessLevel"><option value="new">New to structured training</option><option value="comfortable">Comfortable with the basics</option><option value="experienced">Experienced and consistent</option></select></label><label><span>Available equipment</span><select name="equipment"><option value="Dorm-friendly">Dorm-friendly / bodyweight</option><option value="Home equipment">Home equipment / bands</option><option value="Gym access">Gym access</option></select></label><label><span>Preferred split</span><select name="split"><option value="auto">Fitly chooses for me</option><option value="full_body">Full body</option><option value="upper_lower">Upper / lower</option><option value="ppl">Push / pull / legs</option></select></label></div>
+          <label class="wide-field"><span>Exercises or movement styles you enjoy <small>optional</small></span><textarea name="exercisePreferences" rows="2" placeholder="e.g. dumbbells, walking, machines"></textarea></label>
+          <label class="wide-field"><span>Exercises to avoid or current limitations <small>optional</small></span><textarea name="exercisesToAvoid" rows="2" placeholder="e.g. jumping, overhead pressing, or none"></textarea></label>
+          <label class="wide-field"><span>Current lifts or starting point <small>optional</small></span><textarea name="currentLifts" rows="2" placeholder="e.g. squat 40 kg x 8, or I am not sure yet"></textarea></label>
+          <div class="form-section-label">YOUR CONTEXT <small>Optional, but helpful</small></div>
+          <label class="wide-field"><span>Any health-related issues we should know about?</span><textarea name="healthIssues" rows="2" placeholder="e.g. asthma, knee pain, or none"></textarea></label>
+          <label class="wide-field"><span>Any previous surgery or movement restrictions?</span><textarea name="surgery" rows="2" placeholder="e.g. ACL surgery in 2022, or none"></textarea></label>
+          <div class="form-section-label">YOUR PLAN <small>Choose one focus</small></div>
+          <div class="goal-choice-grid"><button type="button" class="goal-choice is-selected" data-goal="Bulking"><span class="goal-choice-icon coral-workout"><svg class="icon"><use href="#icon-flame"/></svg></span><strong>Bulking</strong><small>Build size &amp; fuel</small></button><button type="button" class="goal-choice" data-goal="Fat loss"><span class="goal-choice-icon mint-workout"><svg class="icon"><use href="#icon-leaf"/></svg></span><strong>Fat loss</strong><small>Lean &amp; steady</small></button><button type="button" class="goal-choice" data-goal="Strength training"><span class="goal-choice-icon blue-workout"><svg class="icon"><use href="#icon-dumbbell"/></svg></span><strong>Strength training</strong><small>Get stronger</small></button></div>
+          <label class="consent-check"><input type="checkbox" name="consent" required/><span>I understand Fitly is not a medical service. I’ll seek professional guidance for injuries, surgery recovery, or health conditions.</span></label>
+          <div class="consent-check terms-consent"><input id="terms-consent" type="checkbox" name="termsAccepted" required/><label for="terms-consent">I agree to the</label><button class="legal-link" type="button" data-action="terms">Terms &amp; Conditions</button><span>and understand the rules for using Fitly.</span></div>
+          <button class="primary-button onboarding-submit" type="submit">Create my plan <svg class="icon"><use href="#icon-arrow"/></svg></button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <div class="brand-lockup">
+        <a class="brand" href="#overview" aria-label="Fitly home"><span class="brand-mark"><span></span><span></span><span></span></span><span>fitly</span></a>
+        <span class="brand-beta">BETA</span>
+      </div>
+
+      <nav class="nav-list" aria-label="Sections">
+        <button class="nav-item is-active" data-view="overview"><svg class="icon"><use href="#icon-grid"/></svg><span>Overview</span></button>
+        <button class="nav-item" data-view="workout"><svg class="icon"><use href="#icon-dumbbell"/></svg><span>My workouts</span></button>
+        <button class="nav-item" data-view="meals"><svg class="icon"><use href="#icon-leaf"/></svg><span>Meal plans</span></button>
+        <button class="nav-item" data-view="progress"><svg class="icon"><use href="#icon-chart"/></svg><span>Progress</span></button>
+      </nav>
+
+      <div class="sidebar-divider"></div>
+      <p class="nav-label">Workspace</p>
+      <nav class="nav-list" aria-label="Workspace">
+        <button class="nav-item" data-action="preferences"><svg class="icon"><use href="#icon-settings"/></svg><span>Preferences</span></button>
+        <button class="nav-item" data-action="help"><svg class="icon"><use href="#icon-help"/></svg><span>Help center</span></button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="upgrade-card">
+          <span class="upgrade-spark"><svg class="icon"><use href="#icon-spark"/></svg></span>
+          <strong>Make it yours</strong>
+          <p>Tell Fitly what your week really looks like.</p>
+          <button class="text-button" data-action="preferences">Edit your mix <svg class="icon"><use href="#icon-arrow"/></svg></button>
+        </div>
+        <div class="sidebar-user">
+          <div class="avatar avatar-small">AK</div>
+          <div><strong>Alex Kumar</strong></div>
+          <button class="more-button" aria-label="Open account menu" aria-expanded="false">•••</button>
+          <div class="account-menu" hidden>
+            <span class="account-menu-label">GOOGLE ACCOUNT</span>
+            <strong class="account-menu-name">Alex Kumar</strong>
+            <span class="account-menu-email">Signed in</span>
+            <button type="button" data-account-action="profile">Edit profile</button>
+            <button type="button" data-account-action="privacy">Privacy policy</button>
+            <button type="button" data-account-action="signout">Sign out</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content" id="overview">
+      <header class="topbar">
+        <button class="mobile-menu" aria-label="Open menu"><svg class="icon"><use href="#icon-menu"/></svg></button>
+        <div class="breadcrumb"><span>Tuesday</span><i></i><strong>October 14, 2025</strong><span class="live-clock" aria-live="polite"></span></div>
+        <div class="topbar-actions">
+          <button class="icon-button search-button" aria-label="Search"><svg class="icon"><use href="#icon-search"/></svg></button>
+          <button class="icon-button notification-button" aria-label="Notifications"><svg class="icon"><use href="#icon-bell"/></svg><span></span></button>
+          <button class="avatar topbar-avatar" type="button" aria-label="Open profile">AK</button>
+        </div>
+      </header>
+
+      <section class="content-wrap page-panel page-overview is-visible" data-page="overview" aria-labelledby="welcome-heading">
+        <section class="welcome-row" aria-labelledby="welcome-heading">
+          <div class="welcome-copy">
+            <p class="eyebrow"><span class="eyebrow-dot"></span> GOOD MORNING, ALEX</p>
+            <h1 id="welcome-heading">Your plan, <em>made for you.</em></h1>
+            <p class="welcome-subtitle">A little movement, food that feels like home, and a plan that fits around your lectures.</p>
+            <div class="welcome-actions">
+              <button class="primary-button ai-trigger"><svg class="icon"><use href="#icon-spark"/></svg> Ask Fitly AI</button>
+              <button class="secondary-button" data-action="preferences">Edit preferences</button>
+            </div>
+          </div>
+
+          <div class="streak-card">
+            <div class="streak-topline"><span class="status-pill"><span></span> On a roll</span><button class="kebab" aria-label="More streak options">•••</button></div>
+            <div class="streak-body">
+              <div class="progress-ring" aria-label="68 percent of today's plan complete"><svg viewBox="0 0 100 100"><circle class="ring-track" cx="50" cy="50" r="42"/><circle class="ring-value" cx="50" cy="50" r="42"/></svg><div><strong>68</strong><span>% done</span></div></div>
+              <div class="streak-copy"><strong>3 day streak</strong><p>Keep the rhythm going today.</p><div class="mini-days" aria-label="Last seven days"><span class="is-done">M</span><span class="is-done">T</span><span class="is-done">W</span><span class="is-done">T</span><span>F</span><span> S</span><span> S</span></div></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="today-signal-row"><section class="today-signal card"><span class="metric-label">TODAY'S STEPS</span><strong class="today-steps">—</strong><p>Keep your baseline steady</p></section><section class="today-signal card"><span class="metric-label">SLEEP &amp; RECOVERY</span><strong class="today-sleep">—</strong><p class="today-recovery">Log a check-in to personalize this</p></section><section class="today-signal card"><span class="metric-label">ADAPTIVE TARGET</span><strong class="today-target">—</strong><p class="today-target-note">Calories from your profile</p></section></div>
+        <section class="week-section" aria-labelledby="week-heading">
+          <div class="section-heading">
+            <div><p class="eyebrow">YOUR ROUTINE</p><h2 id="week-heading">This week</h2></div>
+            <button class="outline-button generate-button"><svg class="icon"><use href="#icon-spark"/></svg> Generate new plan</button>
+          </div>
+          <div class="week-picker" role="tablist" aria-label="Choose a day">
+            <button class="day-tab" data-day="Monday" role="tab"><span>MON</span><strong>13</strong><i></i></button>
+            <button class="day-tab is-active" data-day="Tuesday" role="tab" aria-selected="true"><span>TUE</span><strong>14</strong><i></i></button>
+            <button class="day-tab" data-day="Wednesday" role="tab"><span>WED</span><strong>15</strong><i></i></button>
+            <button class="day-tab" data-day="Thursday" role="tab"><span>THU</span><strong>16</strong><i></i></button>
+            <button class="day-tab" data-day="Friday" role="tab"><span>FRI</span><strong>17</strong><i></i></button>
+            <button class="day-tab" data-day="Saturday" role="tab"><span>SAT</span><strong>18</strong><i></i></button>
+            <button class="day-tab" data-day="Sunday" role="tab"><span>SUN</span><strong>19</strong><i></i></button>
+          </div>
+        </section>
+
+        <div class="dashboard-grid">
+          <div class="dashboard-main">
+            <section class="today-card card" aria-labelledby="today-heading">
+              <div class="card-heading"><div><span class="number-label">01 / 02</span><h2 id="today-heading">Today’s movement</h2></div><span class="duration-pill"><svg class="icon"><use href="#icon-clock"/></svg> 32 min</span></div>
+              <div class="workout-hero">
+                <div class="workout-art" aria-hidden="true"><div class="art-sun"></div><div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div><div class="art-figure"><span class="figure-head"></span><span class="figure-body"></span><span class="figure-arm"></span><span class="figure-leg"></span></div><span class="art-label">LOW<br/>IMPACT</span></div>
+                <div class="workout-info"><span class="type-tag">FULL BODY • AT HOME</span><h3>Reset &amp; recharge</h3><p>Move through a feel-good strength flow that works in your dorm room, no equipment needed.</p><div class="workout-meta"><span><b>06</b> exercises</span><span><b>3</b> working sets</span><span><b>120</b> kcal</span></div><button class="dark-button start-workout"><svg class="icon"><use href="#icon-play"/></svg> Start workout</button></div>
+              </div>
+              <div class="exercise-preview"><span class="preview-label">UP NEXT</span><div class="exercise-list"><div><span class="exercise-num">01</span><strong>Tempo squats</strong><span class="exercise-time">40 sec</span></div><div><span class="exercise-num">02</span><strong>Incline push-ups</strong><span class="exercise-time">40 sec</span></div><div><span class="exercise-num">03</span><strong>Dead bug</strong><span class="exercise-time">40 sec</span></div></div><button class="circle-arrow" aria-label="See all exercises"><svg class="icon"><use href="#icon-arrow"/></svg></button></div>
+            </section>
+
+            <section class="meals-card card" aria-labelledby="meals-heading">
+              <div class="card-heading meals-heading"><div><span class="number-label">02 / 02</span><h2 id="meals-heading">Today's fuel</h2></div><button class="text-button view-all">View full plan <svg class="icon"><use href="#icon-arrow"/></svg></button></div>
+              <div class="macro-row"><div><span>930</span> / 1,850 kcal</div><div class="macro-track"><span style="width:50%"></span></div><div class="macro-breakdown"><span><i class="protein-dot"></i> 74g protein</span><span><i class="carbs-dot"></i> 168g carbs</span><span><i class="fat-dot"></i> 42g fat</span></div></div>
+              <div class="meal-list">
+                <div class="meal-row is-done" data-meal="Breakfast"><div class="meal-icon breakfast">☀</div><div class="meal-copy"><span class="meal-type">BREAKFAST <b>08:00</b></span><strong>Masala oats with boiled eggs</strong><small>Oats · 2 eggs · tomatoes · coriander</small></div><span class="meal-calories">420 kcal</span><button class="meal-check" aria-label="Mark breakfast as incomplete"><svg class="icon"><use href="#icon-check"/></svg></button></div>
+                <div class="meal-row is-done" data-meal="Lunch"><div class="meal-icon lunch">◒</div><div class="meal-copy"><span class="meal-type">LUNCH <b>13:00</b></span><strong>Rajma rice power bowl</strong><small>Kidney beans · basmati rice · cucumber raita</small></div><span class="meal-calories">510 kcal</span><button class="meal-check" aria-label="Mark lunch as incomplete"><svg class="icon"><use href="#icon-check"/></svg></button></div>
+                <div class="meal-row" data-meal="Snack"><div class="meal-icon snack">◌</div><div class="meal-copy"><span class="meal-type">SNACK <b>16:30</b></span><strong>Peanut butter banana toast</strong><small>Wholegrain bread · banana · peanut butter</small></div><span class="meal-calories">220 kcal</span><button class="meal-check" aria-label="Mark snack as complete"></button></div>
+                <div class="meal-row" data-meal="Dinner"><div class="meal-icon dinner">✦</div><div class="meal-copy"><span class="meal-type">DINNER <b>20:00</b></span><strong>Paneer bhurji wraps</strong><small>Paneer · roti · peppers · mint chutney</small></div><span class="meal-calories">480 kcal</span><button class="meal-check" aria-label="Mark dinner as complete"></button></div>
+              </div>
+            </section>
+          </div>
+
+          <aside class="dashboard-rail">
+            <section class="mix-card card dark-card" aria-labelledby="mix-heading">
+              <div class="mix-top"><span class="spark-badge"><svg class="icon"><use href="#icon-spark"/></svg></span><span class="ai-label">FITLY AI</span><button class="kebab light" aria-label="More AI options">•••</button></div>
+              <h2 id="mix-heading">Your personal mix</h2><p>Plans tuned to your real life, not an imaginary perfect week.</p>
+              <div class="preference-chips"><span><i>◎</i> Build strength</span><span><i>⌁</i> South Indian</span><span><i>↗</i> Dorm-friendly</span><span><i>₹</i> ₹2,500 / month</span></div>
+              <button class="light-button" data-action="preferences">Update preferences <svg class="icon"><use href="#icon-arrow"/></svg></button>
+              <div class="mix-orb orb-one"></div><div class="mix-orb orb-two"></div>
+            </section>
+
+            <section class="glance-card card" aria-labelledby="glance-heading">
+              <div class="card-heading"><div><p class="eyebrow">SMALL WINS</p><h2 id="glance-heading">Week at a glance</h2></div><span class="trend-up">+12%</span></div>
+              <div class="mini-chart" aria-label="Weekly activity chart"><div class="chart-grid"><i></i><i></i><i></i></div><div class="bar-set"><span style="height:35%"></span><span style="height:52%"></span><span style="height:44%"></span><span class="bar-active" style="height:78%"></span><span style="height:62%"></span><span style="height:86%"></span><span style="height:70%"></span></div></div>
+              <div class="chart-labels"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+              <div class="glance-stat"><div><strong>4.2</strong><span>workouts<br/>this week</span></div><div><strong>7.8k</strong><span>average daily<br/>steps</span></div></div>
+            </section>
+
+            <section class="swap-card card" aria-labelledby="swap-heading"><div class="swap-icon"><svg class="icon"><use href="#icon-leaf"/></svg></div><div><h2 id="swap-heading">Need a swap?</h2><p>Tell me what you have in the kitchen.</p></div><button class="circle-arrow swap-trigger" aria-label="Ask Fitly for a meal swap"><svg class="icon"><use href="#icon-arrow"/></svg></button></section>
+          </aside>
+        </div>
+      </section>
+
+      <section class="content-wrap page-panel page-workout" data-page="workout" aria-labelledby="workout-page-heading">
+        <div class="page-intro-row">
+          <div><p class="eyebrow"><span class="eyebrow-dot"></span> MY MOVEMENT LIBRARY</p><h1 id="workout-page-heading">My <em>workouts.</em></h1><p>Sessions that respect your energy, your space, and the fact that student life is never perfectly scheduled.</p></div>
+          <button class="primary-button ai-trigger"><svg class="icon"><use href="#icon-spark"/></svg> Ask Fitly AI</button>
+        </div>
+        <div class="metric-row">
+          <div class="metric-card card"><span class="metric-label">THIS WEEK</span><strong>4<span>/5</span></strong><p>sessions completed</p><div class="metric-progress"><i style="width:80%"></i></div></div>
+          <div class="metric-card card"><span class="metric-label">CURRENT STREAK</span><strong>3 <small>days</small></strong><p>keep the rhythm going</p><div class="metric-sparkline"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+          <div class="metric-card card"><span class="metric-label">ACTIVE TIME</span><strong>2h <span>18m</span></strong><p>of intentional movement</p><div class="metric-icon-badge"><svg class="icon"><use href="#icon-clock"/></svg></div></div>
+        </div>
+        <section class="card progression-card"><div><p class="eyebrow">PROGRESSIVE OVERLOAD</p><h2>Make your next set count.</h2><p class="progression-copy">Log a top set and Fitly will suggest whether to add reps, load, or keep the same target based on your RPE.</p></div><form class="progression-form" id="progression-form"><label><span>Exercise</span><input name="exercise" value="Main movement"/></label><label><span>Load <small>kg</small></span><input name="load" type="number" min="0" step="0.5" placeholder="20" required/></label><label><span>Reps</span><input name="reps" type="number" min="1" max="100" placeholder="10" required/></label><label><span>RPE <small>1–10</small></span><input name="rpe" type="number" min="1" max="10" step="0.5" placeholder="8" required/></label><button class="dark-button" type="submit">Log top set <svg class="icon"><use href="#icon-arrow"/></svg></button></form><div class="progression-result" aria-live="polite">Your next-set recommendation will appear here.</div></section>
+        <section class="card detailed-workout-card" aria-labelledby="session-blueprint-heading">
+          <div class="page-card-heading"><div><p class="eyebrow">SESSION BLUEPRINT</p><h2 id="session-blueprint-heading">Your detailed workout</h2></div><span class="workout-plan-badge">AI-ADAPTED</span></div>
+          <div class="workout-detail-summary"><div><span class="detail-label">FOCUS</span><strong class="detail-focus">-</strong></div><div><span class="detail-label">SPLIT</span><strong class="detail-split">-</strong></div><div><span class="detail-label">TIME</span><strong class="detail-duration">-</strong></div><div><span class="detail-label">EQUIPMENT</span><strong class="detail-equipment">-</strong></div></div>
+          <div class="workout-safety-note" aria-live="polite"><strong>Today&apos;s coaching note</strong><span class="detail-recovery-note">Use controlled reps and stop if you feel pain, dizziness, or unusual symptoms.</span></div>
+          <div class="workout-detail-body">
+            <div class="workout-detail-side"><div class="detail-block"><span class="detail-label">WARM-UP</span><p class="detail-warmup-general">-</p><p class="detail-warmup-specific">-</p></div><div class="detail-block"><span class="detail-label">COOL-DOWN</span><ul class="detail-cooldown"></ul></div><div class="detail-block"><span class="detail-label">PROGRESSION</span><strong class="detail-progression-method">-</strong><p class="detail-progression-rule">-</p><p class="detail-progression-next">-</p></div></div>
+            <div class="exercise-detail-column"><div class="exercise-detail-heading"><div><span class="detail-label">WORKING SETS</span><strong>Do each exercise in order</strong></div><small>Log load, reps, RIR, rest, and notes</small></div><div class="exercise-detail-list" id="exercise-detail-list"></div></div>
+          </div>
+          <div class="detail-footer"><div><span class="detail-label">TRACK THIS SESSION</span><span class="detail-tracking">-</span></div><div><span class="detail-label">WEEKLY VOLUME SNAPSHOT</span><span class="detail-volume">-</span></div></div>
+        </section>
+        <div class="page-grid workout-page-grid">
+          <section class="card library-card">
+            <div class="page-card-heading"><div><p class="eyebrow">YOUR LIBRARY</p><h2>Built around your week</h2></div><button class="outline-button generate-button"><svg class="icon"><use href="#icon-spark"/></svg> Generate new plan</button></div>
+            <div class="workout-library-list">
+              <button class="workout-library-row workout-select is-selected" data-workout="Reset & recharge"><span class="library-day">TUE<strong>14</strong></span><span class="library-workout-icon blue-workout"><svg class="icon"><use href="#icon-dumbbell"/></svg></span><span class="library-copy"><strong>Reset &amp; recharge</strong><small>Full body <i>•</i> At home <i>•</i> 32 min</small></span><span class="library-status">Today</span><svg class="icon library-arrow"><use href="#icon-arrow"/></svg></button>
+              <button class="workout-library-row workout-select" data-workout="Core & restore"><span class="library-day">WED<strong>15</strong></span><span class="library-workout-icon coral-workout"><svg class="icon"><use href="#icon-dumbbell"/></svg></span><span class="library-copy"><strong>Core &amp; restore</strong><small>Core + mobility <i>•</i> 20 min</small></span><span class="library-status completed">Completed</span><svg class="icon library-arrow"><use href="#icon-arrow"/></svg></button>
+              <button class="workout-library-row workout-select" data-workout="Lower-body flow"><span class="library-day">THU<strong>16</strong></span><span class="library-workout-icon mint-workout"><svg class="icon"><use href="#icon-dumbbell"/></svg></span><span class="library-copy"><strong>Lower-body flow</strong><small>Lower body <i>•</i> At home <i>•</i> 35 min</small></span><span class="library-status">Planned</span><svg class="icon library-arrow"><use href="#icon-arrow"/></svg></button>
+              <button class="workout-library-row workout-select" data-workout="Cardio burst"><span class="library-day">FRI<strong>17</strong></span><span class="library-workout-icon yellow-workout"><svg class="icon"><use href="#icon-flame"/></svg></span><span class="library-copy"><strong>Cardio burst</strong><small>Small space <i>•</i> 24 min</small></span><span class="library-status">Planned</span><svg class="icon library-arrow"><use href="#icon-arrow"/></svg></button>
+            </div>
+            <button class="text-button library-view-all">View all workouts <svg class="icon"><use href="#icon-arrow"/></svg></button>
+          </section>
+          <aside class="card next-workout-card"><span class="number-label">NEXT UP</span><div class="next-workout-art"><span>LOW<br/>IMPACT</span><div class="art-sun"></div><div class="art-figure mini-figure"><span class="figure-head"></span><span class="figure-body"></span><span class="figure-arm"></span><span class="figure-leg"></span></div></div><span class="type-tag">TUESDAY • FULL BODY</span><h2>Reset &amp; recharge</h2><p>Feel-good strength for a focused afternoon.</p><button class="dark-button start-workout"><svg class="icon"><use href="#icon-play"/></svg> Start workout</button></aside>
+        </div>
+      </section>
+
+      <section class="content-wrap page-panel page-meals" data-page="meals" aria-labelledby="meals-page-heading">
+        <div class="page-intro-row">
+          <div><p class="eyebrow"><span class="eyebrow-dot"></span> YOUR FOOD RHYTHM</p><h1 id="meals-page-heading">Meal plans <em>that feel like home.</em></h1><p>Flexible fuel, familiar ingredients, and enough structure to make the next meal easy.</p></div>
+          <button class="primary-button ai-trigger"><svg class="icon"><use href="#icon-spark"/></svg> Ask for a swap</button>
+        </div>
+        <div class="nutrition-summary-grid">
+          <section class="nutrition-score card"><div><span class="metric-label">TODAY'S FUEL</span><h2>930 <span>/ 1,850 kcal</span></h2><p>You’re right on track for a steady energy day.</p></div><div class="nutrition-ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/><circle class="nutrition-ring-value" cx="50" cy="50" r="40"/></svg><strong>50<span>%</span></strong></div></section>
+          <section class="macro-summary card"><div class="page-card-heading"><div><p class="eyebrow">MACRO BALANCE</p><h2>Enough, not extreme</h2></div><span class="trend-up">+8%</span></div><div class="macro-summary-row"><span class="macro-color protein-dot"></span><span>Protein</span><strong>74g</strong><i><b style="width:68%"></b></i></div><div class="macro-summary-row"><span class="macro-color carbs-dot"></span><span>Carbs</span><strong>168g</strong><i><b style="width:73%"></b></i></div><div class="macro-summary-row"><span class="macro-color fat-dot"></span><span>Fats</span><strong>42g</strong><i><b style="width:48%"></b></i></div></section>
+        </div>
+        <div class="page-grid meals-page-grid">
+          <section class="card meal-plan-full-card"><div class="page-card-heading"><div><p class="eyebrow meal-plan-date">TUESDAY, OCTOBER 14</p><h2>Today's meal plan</h2></div><button class="outline-button meal-prep-button"><svg class="icon"><use href="#icon-clock"/></svg> Prep mode</button></div><div class="meal-plan-list"><div class="plan-meal-row"><span class="plan-meal-time">08:00</span><span class="meal-icon breakfast">☀</span><span class="library-copy"><strong>Idli with sambar &amp; boiled eggs</strong><small>Breakfast <i>•</i> 390 kcal</small></span><button class="page-meal-check is-complete" data-meal="Breakfast" aria-label="Breakfast complete"><svg class="icon"><use href="#icon-check"/></svg></button></div><div class="plan-meal-row"><span class="plan-meal-time">13:00</span><span class="meal-icon lunch">◒</span><span class="library-copy"><strong>Lemon rice power bowl</strong><small>Lunch <i>•</i> 520 kcal</small></span><button class="page-meal-check is-complete" data-meal="Lunch" aria-label="Lunch complete"><svg class="icon"><use href="#icon-check"/></svg></button></div><div class="plan-meal-row"><span class="plan-meal-time">16:30</span><span class="meal-icon snack">◌</span><span class="library-copy"><strong>Peanut butter banana toast</strong><small>Snack <i>•</i> 220 kcal</small></span><button class="page-meal-check" data-meal="Snack" aria-label="Snack incomplete"></button></div><div class="plan-meal-row"><span class="plan-meal-time">20:00</span><span class="meal-icon dinner">✦</span><span class="library-copy"><strong>Paneer bhurji wraps</strong><small>Dinner <i>•</i> 480 kcal</small></span><button class="page-meal-check" data-meal="Dinner" aria-label="Dinner incomplete"></button></div></div><button class="dark-button grocery-button"><svg class="icon"><use href="#icon-plus"/></svg> Add ingredients to grocery list</button></section>
+          <aside class="card grocery-card"><div class="grocery-illustration"><span>₹</span><i></i><b></b></div><p class="eyebrow">SMART GROCERY LIST</p><h2>Shop once,<br/><em>eat all week.</em></h2><p>12 ingredients cover 4 meals and stay within your monthly budget.</p><div class="grocery-progress"><span><b>8</b> / 12 in your kitchen</span><i><b style="width:67%"></b></i></div><button class="text-button grocery-button">Open grocery list <svg class="icon"><use href="#icon-arrow"/></svg></button></aside>
+        </div>
+      </section>
+
+      <section class="content-wrap page-panel page-progress" data-page="progress" aria-labelledby="progress-page-heading">
+        <div class="page-intro-row">
+          <div><p class="eyebrow"><span class="eyebrow-dot"></span> YOUR MOMENTUM</p><h1 id="progress-page-heading">Progress that <em>feels good.</em></h1><p>Consistency is the goal. Here’s the small, useful picture of how your habits are building.</p></div>
+          <button class="outline-button progress-range-button">Last 30 days <svg class="icon"><use href="#icon-arrow"/></svg></button>
+        </div>
+        <div class="progress-kpi-grid"><section class="progress-hero-card dark-card"><div><span class="ai-label">YOUR WEEKLY SCORE</span><h2>82<span>/100</span></h2><p>That’s 12% up from last week. Your rhythm is working.</p></div><div class="hero-score-ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="41"/><circle cx="50" cy="50" r="41" class="hero-score-value"/></svg><span>GOOD<br/>RHYTHM</span></div></section><section class="progress-small-card card"><span class="metric-label">WORKOUTS</span><strong>14</strong><p>completed this month</p><div class="progress-icon-line"><span>+3 vs last month</span><svg class="icon"><use href="#icon-dumbbell"/></svg></div></section><section class="progress-small-card card"><span class="metric-label">MEALS LOGGED</span><strong>28</strong><p>choices that supported you</p><div class="progress-icon-line"><span>+18% consistency</span><svg class="icon"><use href="#icon-leaf"/></svg></div></section></div>
+        <div class="page-grid progress-page-grid"><section class="card consistency-card"><div class="page-card-heading"><div><p class="eyebrow">MOVEMENT CONSISTENCY</p><h2>Your active days</h2></div><span class="trend-up">82% avg.</span></div><div class="large-chart"><div class="large-chart-grid"><i></i><i></i><i></i><i></i></div><div class="large-bars"><span style="height:34%"><b>3</b></span><span style="height:55%"><b>5</b></span><span style="height:43%"><b>4</b></span><span class="large-bar-active" style="height:78%"><b>7</b></span><span style="height:60%"><b>5</b></span><span style="height:88%"><b>8</b></span><span style="height:69%"><b>6</b></span><span style="height:80%"><b>7</b></span><span style="height:90%"><b>8</b></span><span style="height:72%"><b>6</b></span><span style="height:84%"><b>7</b></span><span style="height:94%"><b>9</b></span></div></div><div class="large-chart-labels"><span>JUL 15</span><span>JUL 22</span><span>JUL 29</span><span>AUG 05</span><span>AUG 10</span></div></section><aside class="card wins-card"><div class="page-card-heading"><div><p class="eyebrow">RECENT WINS</p><h2>Keep this energy</h2></div><svg class="icon"><use href="#icon-spark"/></svg></div><div class="win-row"><span class="win-icon green-win"><svg class="icon"><use href="#icon-check"/></svg></span><div><strong>Logged meals 5 days in a row</strong><small>Yesterday</small></div></div><div class="win-row"><span class="win-icon coral-win"><svg class="icon"><use href="#icon-flame"/></svg></span><div><strong>Finished your first 30 min flow</strong><small>2 days ago</small></div></div><div class="win-row"><span class="win-icon blue-win"><svg class="icon"><use href="#icon-dumbbell"/></svg></span><div><strong>Hit your weekly movement goal</strong><small>Last week</small></div></div><button class="text-button progress-reflection">Add a reflection <svg class="icon"><use href="#icon-arrow"/></svg></button></aside></div>
+        <div class="progress-intelligence-grid">
+          <section class="card composition-card"><div class="page-card-heading"><div><p class="eyebrow">BODY COMPOSITION</p><h2>Know your starting point</h2></div><span class="trend-up">ESTIMATE</span></div><div class="composition-stats"><div><span>BMI</span><strong class="composition-bmi">—</strong></div><div><span>LEAN MASS</span><strong class="composition-lean">—</strong></div><div><span>FAT MASS</span><strong class="composition-fat">—</strong></div><div><span>GOAL WEIGHT</span><strong class="composition-goal">—</strong></div></div><p class="composition-note">Add body-fat and target body-fat estimates in your profile to unlock goal-weight forecasting.</p></section>
+          <section class="card adaptive-card"><div class="page-card-heading"><div><p class="eyebrow">ADAPTIVE COACH</p><h2 class="adaptation-headline">Keep collecting your baseline.</h2></div><span class="online-dot is-live"></span></div><p class="adaptation-message">Log consistent weigh-ins and recovery check-ins so Fitly can adapt from trends instead of one-off numbers.</p><div class="adaptation-footer"><span class="adaptation-trend">No trend yet</span><span class="recovery-state">Ready to train</span></div></section>
+        </div>
+        <section class="card progress-log-card"><div class="page-card-heading"><div><p class="eyebrow">DAILY CHECK-IN</p><h2>Give Fitly real signals</h2></div><span class="log-status">Saved locally</span></div><form class="progress-log-form" id="progress-log-form"><label><span>Weight <small>kg</small></span><input name="weight" type="number" min="25" max="350" step="0.1" placeholder="65" required/></label><label><span>Waist <small>cm optional</small></span><input name="waist" type="number" min="30" max="250" step="0.1" placeholder="78"/></label><label><span>Body fat <small>% optional</small></span><input name="bodyFat" type="number" min="3" max="70" step="0.1" placeholder="20"/></label><label><span>Calories <small>optional</small></span><input name="calories" type="number" min="0" max="10000" placeholder="2200"/></label><label><span>Protein <small>g optional</small></span><input name="protein" type="number" min="0" max="500" placeholder="130"/></label><label><span>Steps <small>optional</small></span><input name="steps" type="number" min="0" max="100000" placeholder="7000"/></label><label><span>Sleep <small>hours</small></span><input name="sleepHours" type="number" min="0" max="16" step="0.5" placeholder="7.5"/></label><label><span>Fatigue <small>1–5</small></span><input name="fatigue" type="number" min="1" max="5" placeholder="2"/></label><label><span>Soreness <small>1–5</small></span><input name="soreness" type="number" min="1" max="5" placeholder="2"/></label><label><span>Stress <small>1–5</small></span><input name="stress" type="number" min="1" max="5" placeholder="2"/></label><button class="primary-button" type="submit"><svg class="icon"><use href="#icon-check"/></svg> Save check-in</button></form></section>
+        <section class="card measurement-log-card"><div class="page-card-heading"><div><p class="eyebrow">MEASUREMENTS</p><h2>Track more than the scale</h2></div><span class="log-status">Optional</span></div><form class="measurement-form" id="measurement-form"><label><span>Chest <small>cm</small></span><input name="chest" type="number" min="30" max="250" step="0.1" placeholder="90"/></label><label><span>Arms <small>cm</small></span><input name="arms" type="number" min="10" max="100" step="0.1" placeholder="30"/></label><label><span>Legs <small>cm</small></span><input name="legs" type="number" min="20" max="150" step="0.1" placeholder="52"/></label><label><span>Water <small>litres</small></span><input name="water" type="number" min="0" max="15" step="0.1" placeholder="2.5"/></label><button class="outline-button" type="submit">Save measurements <svg class="icon"><use href="#icon-check"/></svg></button></form></section>
+      </section>
+
+      <section class="content-wrap page-panel page-profile" data-page="profile" aria-labelledby="profile-page-heading">
+        <div class="page-intro-row profile-page-intro">
+          <div><p class="eyebrow"><span class="eyebrow-dot"></span> YOUR ACCOUNT</p><h1 id="profile-page-heading">Your <em>profile.</em></h1><p>Keep your body details, health context, and training preferences up to date so Fitly can keep your workouts and meals realistic.</p></div>
+          <div class="profile-account-summary card"><div class="avatar profile-page-avatar">AK</div><div><strong class="profile-page-name">Alex Kumar</strong><span class="profile-page-email">Signed-in account</span></div></div>
+          <button class="outline-button" type="button" data-view="overview"><svg class="icon"><use href="#icon-arrow-left"/></svg> Back to overview</button>
+        </div>
+        <form class="profile-page-form onboarding-form card" id="profile-page-form">
+          <div class="page-card-heading"><div><p class="eyebrow">PERSONAL DETAILS</p><h2>Make the plan fit you</h2></div><span class="profile-save-status">Synced with your account</span></div>
+          <div class="profile-form-body">
+            <div class="profile-name-field"><label><span>Display name</span><input name="displayName" type="text" maxlength="80" required placeholder="Your name"/></label><small>This is the name Fitly shows in your account. Your Google email stays unchanged.</small></div>
+            <div class="form-section-label">BODY &amp; DAILY LIFE</div>
+            <div class="form-grid"><label><span>Age</span><input name="age" type="number" min="13" max="100" required/></label><label><span>Sex for estimate</span><select name="sex" required><option value="" disabled>Select</option><option value="female">Female</option><option value="male">Male</option><option value="unspecified">Prefer not to say</option></select></label><label><span>Weight <small>kg</small></span><input name="weight" type="number" min="25" max="350" step="0.1" required/></label><label><span>Height <small>cm</small></span><input name="height" type="number" min="100" max="240" required/></label></div>
+            <div class="form-grid"><label><span>Activity level</span><select name="activity" required><option value="sedentary">Sedentary · 1.20</option><option value="light">Light · 1.375</option><option value="moderate">Moderate · 1.55</option><option value="very">Very active · 1.725</option><option value="extreme">Extremely active · 1.90</option></select></label><label><span>Training days <small>/ week</small></span><input name="trainingDays" type="number" min="0" max="7"/></label><label><span>Daily steps <small>optional</small></span><input name="dailySteps" type="number" min="0" max="100000"/></label><label><span>Sleep <small>hours</small></span><input name="sleepHours" type="number" min="0" max="16" step="0.5"/></label></div>
+
+            <div class="form-section-label">TRAINING &amp; NUTRITION</div>
+            <div class="form-grid"><label><span>Experience</span><select name="experience"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label><label><span>Session length <small>minutes</small></span><input name="sessionMinutes" type="number" min="15" max="120" step="5"/></label><label><span>Diet style</span><select name="diet"><option value="omnivore">Omnivore</option><option value="vegetarian">Vegetarian</option><option value="vegan">Vegan</option></select></label><label><span>Available equipment</span><select name="equipment"><option value="Dorm-friendly">Dorm-friendly / bodyweight</option><option value="Home equipment">Home equipment / bands</option><option value="Gym access">Gym access</option></select></label></div>
+            <div class="form-grid"><label><span>Preferred split</span><select name="split"><option value="auto">Fitly chooses for me</option><option value="full_body">Full body</option><option value="upper_lower">Upper / lower</option><option value="ppl">Push / pull / legs</option></select></label><label><span>Goal</span><select name="goal"><option value="Bulking">Bulking</option><option value="Fat loss">Fat loss</option><option value="Strength training">Strength training</option></select></label><label><span>Body fat <small>% optional</small></span><input name="bodyFat" type="number" min="3" max="70" step="0.1"/></label><label><span>Target body fat <small>% optional</small></span><input name="targetBodyFat" type="number" min="5" max="60" step="0.1"/></label></div>
+            <label class="wide-field"><span>Exercises or movement styles you enjoy <small>optional</small></span><textarea name="exercisePreferences" rows="2" placeholder="e.g. dumbbells, walking, machines"></textarea></label>
+            <label class="wide-field"><span>Exercises to avoid or current limitations <small>optional</small></span><textarea name="exercisesToAvoid" rows="2" placeholder="e.g. jumping, overhead pressing, or none"></textarea></label>
+
+            <div class="form-section-label">HEALTH CONTEXT <small>Important for safe recommendations</small></div>
+            <label class="wide-field"><span>Health-related issues</span><textarea name="healthIssues" rows="3" placeholder="e.g. asthma, knee pain, or none"></textarea></label>
+            <label class="wide-field"><span>Previous surgery or movement restrictions</span><textarea name="surgery" rows="3" placeholder="e.g. ACL surgery in 2022, or none"></textarea></label>
+            <label class="profile-consent"><input type="checkbox" name="profileConsent" required/><span>I understand Fitly is not a medical service and I’ll seek professional guidance for injuries, surgery recovery, or health conditions.</span></label>
+            <div class="profile-form-footer"><span class="profile-save-status">Your changes update future plans</span><button class="primary-button profile-save-button" type="submit"><svg class="icon"><use href="#icon-check"/></svg> Save profile</button></div>
+          </div>
+        </form>
+      </section>
+
+      <section class="content-wrap page-panel page-privacy" data-page="privacy" aria-labelledby="privacy-page-heading">
+        <div class="page-intro-row privacy-page-intro">
+          <div><p class="eyebrow"><span class="eyebrow-dot"></span> YOUR DATA, YOUR CHOICE</p><h1 id="privacy-page-heading">Privacy <em>policy.</em></h1><p>A plain-language guide to what Fitly stores, why it is used, and the choices you have.</p></div>
+          <button class="outline-button" type="button" data-view="overview"><svg class="icon"><use href="#icon-arrow-left"/></svg> Back to overview</button>
+        </div>
+        <article class="card privacy-card">
+          <div class="privacy-card-heading"><div><p class="eyebrow">PLAIN-LANGUAGE SUMMARY</p><h2>What we collect and why</h2></div><span class="privacy-updated">Last updated August 11, 2026</span></div>
+          <div class="privacy-summary"><p>Fitly uses the information you choose to provide to create practical workout and meal plans, remember your progress, and make the app useful across sessions. We do not sell your personal information.</p><p>Signing out ends your current session. It does not delete your account data; when you sign in again, your saved profile, plans, and progress can be loaded for your account.</p></div>
+          <div class="privacy-note" style="margin-top:1rem;"><strong>NOTE:</strong> This website was built as part of my IBM x AICTE internship project. It is intended for educational and demonstration purposes only.</div>
+          <div class="privacy-sections">
+            <section><h3>1. Information you provide</h3><p>This may include your name and email from Google sign-in, age, height, weight, goals, diet preferences, equipment, health context, surgery or movement restrictions, check-ins, measurements, completed workouts, meal logs, grocery items, and chat messages.</p></section>
+            <section><h3>2. How we use it</h3><p>We use this information to personalize plans, calculate targets and progress summaries, save completion history, respond to your questions, and improve the reliability and safety of the experience.</p></section>
+            <section><h3>3. AI guidance</h3><p>When you ask for live guidance or generate a plan, the relevant question and plan context may be sent to the configured AI service provider so it can produce a response. Fitly does not use AI guidance as a diagnosis or medical treatment.</p></section>
+            <section><h3>4. Sign-in and storage</h3><p>Google handles the sign-in step. Fitly receives the account identity needed to create your account. Your profile, plans, and activity are stored with the app’s database service and are associated with your signed-in account so multiple users can keep separate progress.</p></section>
+            <section><h3>5. Your choices</h3><p>You can edit your profile, update preferences, log or uncheck activities, and sign out at any time. To request account-data correction or deletion, contact the person or organization operating this Fitly deployment before public launch.</p></section>
+            <section><h3>6. Health and safety</h3><p>Please do not use Fitly for emergencies or as a substitute for qualified medical advice. Stop exercising and seek professional help for concerning symptoms, injuries, surgery recovery, or health conditions.</p></section>
+          </div>
+          <div class="privacy-contact">
+            <div><p class="eyebrow">PRIVACY CONTACT</p><h3>Owner: Naveen Kumar D</h3><p>For privacy questions, account-data corrections, or deletion requests, contact the owner directly.</p></div>
+            <div class="privacy-contact-links"><a href="mailto:dnaveenkumar255@gmail.com">dnaveenkumar255@gmail.com</a><a href="https://www.linkedin.com/in/naveen28342/" target="_blank" rel="noreferrer">LinkedIn</a><a href="https://github.com/naveen28342-gif" target="_blank" rel="noreferrer">GitHub</a></div>
+          </div>
+          <div class="privacy-note"><strong>Questions?</strong><span>Open the Help Center for product guidance. This policy should be reviewed and updated for any local privacy requirements before a public launch.</span></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <button class="chat-launcher ai-trigger" aria-label="Open Fitly chatbot"><span class="chat-launcher-icon"><svg class="icon"><use href="#icon-spark"/></svg></span><span><strong>Fitly chatbot</strong><small>Ask about your plan</small></span></button>
+
+  <div class="mobile-nav" aria-label="Mobile navigation"><button class="is-active" data-view="overview"><svg class="icon"><use href="#icon-grid"/></svg><span>Overview</span></button><button data-view="workout"><svg class="icon"><use href="#icon-dumbbell"/></svg><span>My workouts</span></button><button data-view="meals"><svg class="icon"><use href="#icon-leaf"/></svg><span>Meal plans</span></button><button data-view="progress"><svg class="icon"><use href="#icon-chart"/></svg><span>Progress</span></button></div>
+
+  <section class="ai-drawer" aria-label="Fitly chatbot" aria-hidden="true">
+    <div class="drawer-head"><div><span class="ai-label"><span class="online-dot"></span><span class="ai-status-text"> FITLY CHATBOT</span></span><h2>Chat with Fitly.</h2></div><button class="drawer-close" aria-label="Close chatbot"><svg class="icon"><use href="#icon-close"/></svg></button></div>
+    <p class="drawer-intro">Ask for a swap, a shorter session, or a plan around whatever your day throws at you.</p>
+    <div class="suggestions"><button>Make today's workout 20 minutes</button><button>Swap dinner for a vegetarian option</button><button>What can I prep in 15 minutes?</button></div>
+    <div class="chat-messages" aria-live="polite"><div class="chat-bubble ai-bubble">I’m here. Your plan already knows you prefer low-impact movement and food that feels familiar.</div></div>
+    <form class="ai-form"><input type="text" aria-label="Ask Fitly AI" placeholder="Ask anything about your plan…" autocomplete="off"/><button class="send-button" aria-label="Send message"><svg class="icon"><use href="#icon-arrow"/></svg></button></form>
+  </section>
+  <div class="drawer-backdrop"></div>
+
+  <div class="preferences-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="preferences-heading">
+    <div class="modal-card"><button class="modal-close" aria-label="Close preferences"><svg class="icon"><use href="#icon-close"/></svg></button><span class="spark-badge"><svg class="icon"><use href="#icon-spark"/></svg></span><p class="eyebrow">MAKE IT YOURS</p><h2 id="preferences-heading">Tune your personal mix</h2><p class="modal-intro">Fitly uses these choices to make every plan more realistic.</p><div class="preference-group"><label>What's your main goal?</label><div class="choice-grid" data-choice-group="goal"><button class="choice is-selected">Build strength</button><button class="choice">Get more energy</button><button class="choice">Feel more flexible</button></div></div><div class="preference-group"><label>What food feels like home?</label><div class="choice-grid" data-choice-group="food"><button class="choice is-selected">South Indian</button><button class="choice">North Indian</button><button class="choice">Global mix</button></div></div><div class="preference-group"><label>What can you access?</label><div class="choice-grid" data-choice-group="equipment"><button class="choice is-selected">Dorm-friendly</button><button class="choice">Gym access</button><button class="choice">Home equipment</button></div></div><button class="dark-button save-preferences">Save my mix <svg class="icon"><use href="#icon-arrow"/></svg></button></div>
+  </div>
+
+  <div class="search-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="search-heading">
+    <div class="modal-card search-card">
+      <button class="modal-close search-close" type="button" aria-label="Close search"><svg class="icon"><use href="#icon-close"/></svg></button>
+      <span class="spark-badge search-badge"><svg class="icon"><use href="#icon-search"/></svg></span>
+      <p class="eyebrow">FITLY SEARCH</p>
+      <h2 id="search-heading">Find your plan.</h2>
+      <p class="modal-intro">Jump to a page, workout, meal, or progress detail.</p>
+      <form class="search-form" id="search-form" role="search">
+        <svg class="icon"><use href="#icon-search"/></svg>
+        <input id="search-input" type="search" aria-label="Search Fitly" placeholder="Search workouts, meals, or pages…" autocomplete="off" />
+        <button class="search-clear" type="button" aria-label="Clear search" hidden>Clear</button>
+      </form>
+      <div class="search-results" id="search-results" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="notifications-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="notifications-heading">
+    <div class="modal-card notifications-card">
+      <button class="modal-close notifications-close" type="button" aria-label="Close notifications"><svg class="icon"><use href="#icon-close"/></svg></button>
+      <div class="notifications-title-row"><div><p class="eyebrow">YOUR UPDATES</p><h2 id="notifications-heading">Notifications.</h2></div><button class="text-button notifications-clear" type="button">Mark all read</button></div>
+      <p class="modal-intro">Helpful reminders from your plan and progress.</p>
+      <div class="notification-list" id="notification-list" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="help-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="help-heading">
+    <div class="modal-card help-card">
+      <button class="modal-close help-close" type="button" aria-label="Close Help Center"><svg class="icon"><use href="#icon-close"/></svg></button>
+      <span class="spark-badge"><svg class="icon"><use href="#icon-help"/></svg></span>
+      <p class="eyebrow">FITLY HELP CENTER</p>
+      <h2 id="help-heading">How can we help?</h2>
+      <p class="modal-intro">Quick answers for using your personal plan.</p>
+      <div class="help-sections">
+        <details open><summary>How is my plan personalized?</summary><p>Your profile, goal, food preferences, available equipment, and training history shape future workout and meal plans. Use Edit profile or Generate new plan when something changes.</p></details>
+        <details><summary>When is a workout marked complete?</summary><p>Start the workout to run the timer. Mark each exercise complete as you finish it; Fitly records the workout only after every exercise is checked.</p></details>
+        <details><summary>How do I log food or groceries?</summary><p>Open Meal plans to mark planned meals complete or add what you ate manually. Open Grocery list to check off ingredients or add an item for your next shop.</p></details>
+        <details><summary>How is Progress calculated?</summary><p>Progress updates from completed workouts, meals you log, check-ins, and measurements you add. It reflects your own recorded activity, not a generic score.</p></details>
+        <details><summary>Health and safety</summary><p>Fitly is not a medical service. For injuries, surgery recovery, symptoms, or a health condition, pause and ask a qualified healthcare professional for advice.</p></details>
+      </div>
+      <button class="outline-button help-chat-button" type="button"><svg class="icon"><use href="#icon-spark"/></svg> Ask Fitly a question</button>
+    </div>
+  </div>
+
+  <div class="terms-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="terms-heading">
+    <div class="modal-card terms-card">
+      <button class="modal-close terms-close" type="button" aria-label="Close Terms and Conditions"><svg class="icon"><use href="#icon-close"/></svg></button>
+      <span class="spark-badge"><svg class="icon"><use href="#icon-help"/></svg></span>
+      <p class="eyebrow">FITLY TERMS &amp; CONDITIONS</p>
+      <h2 id="terms-heading">Using Fitly responsibly.</h2>
+      <p class="modal-intro">Please read these terms before creating your account and plan.</p>
+      <div class="terms-sections">
+        <section><h3>1. Accepting these terms</h3><p>By creating a Fitly account or using the service, you agree to these Terms and Conditions and the Privacy Policy.</p></section>
+        <section><h3>2. Health and safety</h3><p>Fitly provides general fitness and meal-planning information only. It is not medical advice, diagnosis, or treatment. Stop and seek qualified professional advice for injuries, symptoms, surgery recovery, or health conditions.</p></section>
+        <section><h3>3. Your account and information</h3><p>Keep your sign-in secure and provide information that is accurate to the best of your knowledge. You are responsible for activity completed under your account.</p></section>
+        <section><h3>4. Personalized plans</h3><p>Plans and live guidance are suggestions, not guarantees of results. Adjust effort, food, and timing to your real situation, and do not follow any suggestion that feels unsafe.</p></section>
+        <section><h3>5. Respectful use</h3><p>Do not misuse the service, interfere with other users, attempt to access another person’s account, or use Fitly for unlawful or harmful activity.</p></section>
+        <section><h3>6. Changes and support</h3><p>Fitly may update features or these terms as the service evolves. The current Privacy Policy lists the owner contact for questions about the app or your data.</p></section>
+      </div>
+      <button class="primary-button terms-acknowledge" type="button"><svg class="icon"><use href="#icon-check"/></svg> I understand</button>
+    </div>
+  </div>
+
+  <div class="food-log-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="food-log-heading">
+    <div class="modal-card food-log-card"><button class="modal-close food-log-close" type="button" aria-label="Close food log"><svg class="icon"><use href="#icon-close"/></svg></button><span class="spark-badge"><svg class="icon"><use href="#icon-spark"/></svg></span><p class="eyebrow">MANUAL FOOD LOG</p><h2 id="food-log-heading">Log what you ate.</h2><p class="modal-intro">Add anything outside your plan so today’s calories and progress stay accurate.</p><form id="food-log-form" class="food-log-form"><label>Meal<select name="meal"><option>Breakfast</option><option>Lunch</option><option>Snack</option><option>Dinner</option></select></label><label>Food or drink<input name="name" type="text" required maxlength="120" placeholder="e.g. Masala dosa and chutney"/></label><label>Calories <small>kcal</small><input name="kcal" type="number" min="0" max="10000" required placeholder="450"/></label><div class="food-log-macros"><label>Protein <small>g optional</small><input name="protein" type="number" min="0" max="500" step="1" placeholder="20"/></label><label>Carbs <small>g optional</small><input name="carbs" type="number" min="0" max="1000" step="1" placeholder="55"/></label><label>Fat <small>g optional</small><input name="fat" type="number" min="0" max="500" step="1" placeholder="15"/></label></div><div class="food-log-actions"><button class="outline-button food-log-cancel" type="button">Cancel</button><button class="primary-button" type="submit"><svg class="icon"><use href="#icon-check"/></svg> Save food</button></div></form></div>
+  </div>
+
+  <div class="grocery-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="grocery-heading">
+    <div class="modal-card grocery-list-modal-card"><button class="modal-close grocery-modal-close" type="button" aria-label="Close grocery list"><svg class="icon"><use href="#icon-close"/></svg></button><span class="spark-badge grocery-modal-badge"><svg class="icon"><use href="#icon-leaf"/></svg></span><p class="eyebrow">SMART GROCERY LIST</p><h2 id="grocery-heading">What to buy.</h2><p class="modal-intro">Ingredients from your current meal plan, ready for your next shop.</p><form class="grocery-add-form" id="grocery-add-form"><label for="grocery-add-input">Add another item</label><div class="grocery-add-row"><input id="grocery-add-input" name="item" type="text" maxlength="100" placeholder="e.g. Bananas" autocomplete="off" required /><button class="primary-button" type="submit"><svg class="icon"><use href="#icon-plus"/></svg> Add item</button></div></form><div class="grocery-list-summary"><strong id="grocery-item-count">0 items</strong><span id="grocery-checked-count">0 checked</span></div><div class="grocery-items" id="grocery-items"></div><button class="dark-button grocery-modal-done" type="button">Done <svg class="icon"><use href="#icon-check"/></svg></button></div>
+  </div>
+
+  <div class="toast" role="status" aria-live="polite"><span class="toast-icon"><svg class="icon"><use href="#icon-check"/></svg></span><span class="toast-text">Plan updated</span></div>
+</body>
+</html>

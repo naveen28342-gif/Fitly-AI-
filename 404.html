@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Fitly — Page not found</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root { color-scheme: light; font-family: 'DM Sans', sans-serif; color: #152e25; background: #f2f7ef; }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; overflow: hidden; padding: 24px; background: radial-gradient(circle at 86% 5%, rgba(201, 232, 169, .42), transparent 30rem), #f2f7ef; }
+    .orbit { width: min(960px, 100%); min-height: 520px; position: relative; display: grid; place-items: center; overflow: hidden; padding: 48px 30px; border: 1px solid #dbe8d7; border-radius: 30px; background: rgba(255, 255, 255, .72); box-shadow: 0 24px 70px rgba(35, 74, 51, .12); text-align: center; }
+    .orbit::before, .orbit::after { position: absolute; border: 1px solid rgba(117, 164, 78, .16); border-radius: 50%; content: ''; pointer-events: none; }
+    .orbit::before { width: 520px; height: 520px; top: -340px; right: -150px; box-shadow: 0 0 0 28px rgba(117, 164, 78, .05), 0 0 0 56px rgba(117, 164, 78, .035); }
+    .orbit::after { width: 360px; height: 360px; bottom: -255px; left: -150px; box-shadow: 0 0 0 24px rgba(202, 141, 109, .045); }
+    .content { position: relative; z-index: 1; max-width: 520px; }
+    .brand { display: inline-flex; align-items: center; gap: 9px; margin-bottom: 34px; color: #152e25; font: 600 27px/1 'Space Grotesk', sans-serif; letter-spacing: -.07em; }
+    .mark { display: inline-flex; align-items: end; gap: 3px; height: 27px; }
+    .mark i { display: block; width: 7px; border-radius: 6px; background: #152e25; transform: skew(-14deg); }
+    .mark i:nth-child(1) { height: 11px; opacity: .55; }.mark i:nth-child(2) { height: 18px; opacity: .78; }.mark i:nth-child(3) { height: 26px; }
+    .code { margin: 0; color: #82a95c; font: 600 clamp(78px, 15vw, 136px)/.8 'Space Grotesk', sans-serif; letter-spacing: -.1em; }
+    h1 { margin: 22px 0 14px; font: 600 clamp(31px, 5vw, 48px)/.96 'Space Grotesk', sans-serif; letter-spacing: -.075em; }
+    p { max-width: 390px; margin: 0 auto; color: #668071; font-size: 15px; line-height: 1.55; }
+    a { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; margin-top: 28px; padding: 0 18px; color: #f8fbf5; border-radius: 11px; background: #17382d; box-shadow: 0 10px 20px rgba(22, 57, 45, .16); font-size: 13px; font-weight: 700; text-decoration: none; transition: transform .2s ease, background .2s ease; }
+    a:hover { background: #244d3d; transform: translateY(-2px); }
+    a span { font-size: 18px; line-height: 1; }
+    @media (max-width: 560px) { .orbit { min-height: 480px; padding: 36px 22px; border-radius: 23px; }.brand { margin-bottom: 27px; }.code { font-size: 94px; } p { font-size: 13px; } }
+  </style>
+</head>
+<body>
+  <main class="orbit">
+    <section class="content" aria-labelledby="not-found-heading">
+      <div class="brand" aria-label="Fitly"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>fitly</div>
+      <p class="code" aria-hidden="true">404</p>
+      <h1 id="not-found-heading">This page took a rest day.</h1>
+      <p>The page you were looking for has moved, changed, or never existed. Let’s get you back to your plan.</p>
+      <a href="/"><span aria-hidden="true">←</span> Back to Fitly</a>
+    </section>
+  </main>
+</body>
+</html>

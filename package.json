@@ -1,0 +1,12 @@
+{
+  "name": "fitly-planner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personalized real-time workout and meal planner for students",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
