@@ -356,7 +356,7 @@ function renderLiveProgress() {
   if (heroNote) heroNote.textContent = `${stats.weekWorkouts.length} workouts, ${stats.weekMeals.length} meals, and ${state.progressLogs.filter((log) => inRecentDays(log.date, 7)).length} check-ins logged in the last 7 days.`;
   const heroRing = $('.hero-score-value');
   if (heroRing) heroRing.style.strokeDashoffset = `${258 - (258 * stats.weeklyScore / 100)}`;
-  const smallCards = $$('.progress-page .progress-small-card');
+  const smallCards = $$('.page-progress .progress-small-card');
   if (smallCards[0]) { smallCards[0].querySelector('strong').textContent = stats.monthWorkouts.length; smallCards[0].querySelector('p').textContent = 'completed in the last 30 days'; smallCards[0].querySelector('.progress-icon-line span').textContent = `${stats.weekWorkouts.length} this week`; }
   if (smallCards[1]) { smallCards[1].querySelector('strong').textContent = stats.monthMeals.length; smallCards[1].querySelector('p').textContent = 'logged in the last 30 days'; smallCards[1].querySelector('.progress-icon-line span').textContent = `${stats.weekMeals.length} this week`; }
   const consistencyTrend = $('.consistency-card .trend-up');
