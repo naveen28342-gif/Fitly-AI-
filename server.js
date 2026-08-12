@@ -723,12 +723,7 @@ async function askGemini(message, systemInstruction, generationConfig = {}) {
     aiRuntime.status = 'not_configured';
     return null;
   }
-  if (aiRuntime.retryUntil > Date.now()) {
-    const error = new Error('Gemini is temporarily rate limited');
-    error.code = 'AI_RATE_LIMITED';
-    error.retryAfterSeconds = Math.ceil((aiRuntime.retryUntil - Date.now()) / 1000);
-    throw error;
-  }
+
   if (aiRuntime.status !== 'connected') {
     aiRuntime.status = 'configured';
   }
@@ -748,8 +743,8 @@ async function askGemini(message, systemInstruction, generationConfig = {}) {
     aiRuntime.status = response.status === 429 ? 'rate_limited' : 'error';
     aiRuntime.lastError = response.status === 429 ? 'Gemini quota or rate limit reached' : `Gemini returned HTTP ${response.status}`;
     aiRuntime.lastErrorAt = new Date().toISOString();
-    aiRuntime.retryAfterSeconds = retryAfterSeconds;
-    aiRuntime.retryUntil = retryAfterSeconds ? Date.now() + retryAfterSeconds * 1000 : 0;
+    aiRuntime.retryAfterSeconds = 0;
+    aiRuntime.retryUntil = 0;
     const error = new Error(aiRuntime.lastError);
     error.code = response.status === 429 ? 'AI_RATE_LIMITED' : 'AI_REQUEST_FAILED';
     error.status = response.status;
