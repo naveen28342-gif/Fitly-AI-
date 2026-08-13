@@ -416,7 +416,7 @@ body.onboarding-active .app-shell, body.onboarding-active .mobile-nav, body.onbo
 .google-signin-button { min-height: 40px; }
 .google-login { min-height: 50px; display: inline-flex; align-items: center; gap: 12px; padding: 0 14px 0 10px; color: #21342c; border: 1px solid #dce7d9; border-radius: 11px; background: #fff; box-shadow: 0 10px 22px rgba(46, 73, 51, .07); font-size: 12px; font-weight: 700; text-decoration: none; transition: .2s ease; }
 .google-login:hover { transform: translateY(-2px); box-shadow: 0 13px 27px rgba(46, 73, 51, .11); }
-.google-g { width: 29px; height: 29px; display: grid; place-items: center; color: #4285f4; border: 1px solid #e1e8f3; border-radius: 7px; font: 700 17px Arial, sans-serif; }
+.google-g { width: 29px; height: 29px; display: grid; place-items: center; border: 1px solid #e1e8f3; border-radius: 7px; }
 .google-login .icon { width: 14px; height: 14px; margin-left: 17px; color: #7d9d69; }
 .login-note { color: #98a89d; font-size: 9px; }
 .onboarding-trust { display: flex; flex-wrap: wrap; gap: 19px; margin-top: 53px; color: #87998b; font-size: 9px; }
