@@ -419,8 +419,6 @@ body.onboarding-active .app-shell, body.onboarding-active .mobile-nav, body.onbo
 .google-g { width: 29px; height: 29px; display: grid; place-items: center; color: #4285f4; border: 1px solid #e1e8f3; border-radius: 7px; font: 700 17px Arial, sans-serif; }
 .google-login .icon { width: 14px; height: 14px; margin-left: 17px; color: #7d9d69; }
 .login-note { color: #98a89d; font-size: 9px; }
-.demo-link { display: inline-flex; align-items: center; gap: 7px; margin-top: 17px; padding: 0; color: #6f9151; background: transparent; font-size: 11px; font-weight: 700; }
-.demo-link .icon { width: 13px; height: 13px; }
 .onboarding-trust { display: flex; flex-wrap: wrap; gap: 19px; margin-top: 53px; color: #87998b; font-size: 9px; }
 .onboarding-trust span { display: inline-flex; align-items: center; gap: 5px; }
 .onboarding-trust .icon { width: 12px; height: 12px; color: #7eaa56; }

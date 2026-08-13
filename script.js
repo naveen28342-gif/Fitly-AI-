@@ -1946,7 +1946,6 @@ $$('.goal-choice').forEach((choice) => choice.addEventListener('click', () => {
   $$('.goal-choice').forEach((item) => item.classList.remove('is-selected'));
   choice.classList.add('is-selected');
 }));
-$$('[data-onboarding-demo]').forEach((button) => button.addEventListener('click', () => setOnboardingStep('profile')));
 $('.google-login')?.addEventListener('click', async (event) => {
   event.preventDefault();
   const note = $('.login-note');
