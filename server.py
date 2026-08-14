@@ -1160,6 +1160,8 @@ def _serve_static(pathname: str):
     resp.headers["Content-Type"] = mime
     resp.headers["Cache-Control"] = cache
     resp.headers["Content-Security-Policy-Report-Only"] = _CSP_STATIC
+    if file_path.name == "sw.js":
+        resp.headers["Service-Worker-Allowed"] = "/"
     return resp
 
 

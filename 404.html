@@ -26,6 +26,7 @@
     p { max-width: 390px; margin: 0 auto; color: #668071; font-size: 15px; line-height: 1.55; }
     a { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; margin-top: 28px; padding: 0 18px; color: #f8fbf5; border-radius: 11px; background: #17382d; box-shadow: 0 10px 20px rgba(22, 57, 45, .16); font-size: 13px; font-weight: 700; text-decoration: none; transition: transform .2s ease, background .2s ease; }
     a:hover { background: #244d3d; transform: translateY(-2px); }
+    .offline-hint { margin-top: 12px; font-size: 13px; color: #82a95c; }
     a span { font-size: 18px; line-height: 1; }
     @media (max-width: 560px) { .orbit { min-height: 480px; padding: 36px 22px; border-radius: 23px; }.brand { margin-bottom: 27px; }.code { font-size: 94px; } p { font-size: 13px; } }
   </style>
@@ -36,9 +37,21 @@
       <div class="brand" aria-label="Fitly"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>fitly</div>
       <p class="code" aria-hidden="true">404</p>
       <h1 id="not-found-heading">This page took a rest day.</h1>
-      <p>The page you were looking for has moved, changed, or never existed. Let’s get you back to your plan.</p>
+      <p id="not-found-desc">The page you were looking for has moved, changed, or never existed. Let's get you back to your plan.</p>
       <a href="/"><span aria-hidden="true">←</span> Back to Fitly</a>
+      <p class="offline-hint" id="offline-hint" style="display:none">You'll be taken back automatically when the connection is restored.</p>
     </section>
   </main>
+<script>
+  (function () {
+    var offline = new URLSearchParams(location.search).get('offline') === '1' || !navigator.onLine;
+    if (offline) {
+      document.getElementById('not-found-heading').textContent = 'You\'re offline.';
+      document.getElementById('not-found-desc').textContent = 'It looks like your device lost its connection. Reconnect and we\'ll take you right back.';
+      document.getElementById('offline-hint').style.display = '';
+      window.addEventListener('online', function () { location.replace('/'); });
+    }
+  })();
+</script>
 </body>
 </html>

@@ -40,6 +40,11 @@
       background: rgba(255,255,255,.05) !important;
     }
   </style>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    }
+  </script>
   <script src="https://accounts.google.com/gsi/client" async></script>
   <script src="./workout-engine.js"></script>
   <script src="./script.js" defer></script>
