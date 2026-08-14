@@ -2,31 +2,32 @@
 
 Fitly is a runnable student-focused fitness planner. It combines a weekly movement plan, culturally familiar budget-aware meals, progress signals, persisted user preferences, a live workout timer, and a backend-ready AI assistant.
 
-## Run locally
+## Run locally (Python)
 
-Use the Node server for live plan and chat routes:
+Install dependencies and start the Python server:
 
 ```bash
-node server.js
+pip install -r requirements.txt
+python server.py
 ```
 
-Then visit `http://localhost:5173`. Node 18+ is required. The app can still be opened as a static file, but API-backed plan generation, chat, and account persistence require the Node server.
+Then visit `http://localhost:5173`. Python 3.9+ is required. The app can still be opened as a static file, but API-backed plan generation, chat, and account persistence require the Python server.
 
-To enable live Gemini responses and AI-generated plans, set `GEMINI_API_KEY` before starting the server. The key stays on the Node server and is never sent to the browser. See [.env.example](C:/Users/dream/Desktop/codex/.env.example) for the environment variables.
+To enable live Gemini responses and AI-generated plans, set `GEMINI_API_KEY` before starting the server. The key stays on the server and is never sent to the browser. See [.env.example](.env.example) for all environment variables.
 
-On Windows, copy `.env.example` to `.env.local`, add the rotated key, then restart the server:
+On Windows, copy `.env.example` to `.env.local`, add your key, then restart:
 
 ```powershell
 Copy-Item .env.example .env.local
 notepad .env.local
-node server.js
+python server.py
 ```
 
 For real Google login, create a Web application OAuth client in Google Cloud and add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and the exact redirect URI from `.env.example`. If these values are absent, the app offers demo mode so you can still complete onboarding locally.
 
 ## Supabase persistence
 
-Create a Supabase project, run [supabase/schema.sql](C:/Users/dream/Desktop/codex/supabase/schema.sql) in its SQL Editor, then add `SUPABASE_URL` and the server-only `SUPABASE_SECRET_KEY` to `.env.local`. When both values are configured, Supabase becomes the primary store for profiles, progress, activity, preferences, and chat. Run `node migrate-to-supabase.js` once to copy existing records from `data/fitly-data.json`; the file is retained as a backup and is no longer read or written while Supabase is active.
+Create a Supabase project, run [supabase/schema.sql](supabase/schema.sql) in its SQL Editor, then add `SUPABASE_URL` and the server-only `SUPABASE_SECRET_KEY` to `.env.local`. When both values are configured, Supabase becomes the primary store for profiles, progress, activity, preferences, and chat. Set `SUPABASE_MIGRATE_FILE=true` once to copy existing records from `data/fitly-data.json`; the file is retained as a backup and is no longer read or written while Supabase is active.
 
 ## Included interactions
 
@@ -59,6 +60,6 @@ Create a Supabase project, run [supabase/schema.sql](C:/Users/dream/Desktop/code
 
 Google users are identified by Google’s stable account ID, so different Gmail accounts receive separate profiles and progress histories. Without Supabase, user records and sessions are persisted to `data/fitly-data.json`; set `FITLY_DATA_FILE` to place that file on a durable volume. Supabase is recommended for a live multi-user deployment. For production, use HTTPS, production OAuth origins and redirect URIs, and keep the service-role key only on the server.
 
-The server remains dependency-free and serves both the frontend and JSON API. The local data file contains account profile and progress data, so keep it private and back it up securely.
+The server serves both the frontend and JSON API. Its only runtime dependencies are `flask` and `requests`. The local data file contains account profile and progress data, so keep it private and back it up securely.
 
 Nutrition estimates are starting points, not medical advice. Fitly uses the formula sheet supplied with this project: a 5–15% surplus for bulking, a 10–25% deficit for fat loss, 1.6–2.2 g/kg protein (1.8–2.4 g/kg during fat loss), 0.6–1.0 g/kg fat, remaining calories as carbohydrate, and 14 g fiber per 1,000 kcal. Recheck a 7-day average after 2–3 weeks and adjust by roughly 100–200 kcal when the trend is consistently off target.
