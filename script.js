@@ -2161,3 +2161,7 @@ setInterval(checkLiveService, 60000);
 setInterval(updateLiveHeader, 30000);
 setInterval(updateWorkoutTimer, 1000);
 document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { closeDrawer(); closeSearch(); closeNotifications(); closeHelpCentre(); closeTerms(); closePreferences(); } });
+
+// Offline detection — redirect to 404 page when device loses connectivity
+window.addEventListener('offline', () => { location.replace('/404.html?offline=1'); });
+if (!navigator.onLine) { location.replace('/404.html?offline=1'); }
