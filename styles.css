@@ -801,7 +801,7 @@ body.onboarding-active .app-shell, body.onboarding-active .mobile-nav, body.onbo
   .dashboard-grid { grid-template-columns: minmax(0, 1.35fr) minmax(275px, .75fr); }
 }
 
-@media (max-width: 880px) {
+@media (min-width: 769px) and (max-width: 880px) {
   .sidebar { width: 78px; padding: 28px 12px 20px; align-items: center; }
   .brand-lockup { padding: 0 0 48px; }
   .brand { font-size: 0; }
@@ -827,7 +827,7 @@ body.onboarding-active .app-shell, body.onboarding-active .mobile-nav, body.onbo
   .measurement-form { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 768px) {
   body { padding-bottom: 72px; }
   .onboarding-screen { display: block; min-height: 100svh; padding: 24px 18px 35px; }
   .onboarding-shell { width: 100%; }
