@@ -868,7 +868,7 @@ body.onboarding-active .app-shell, body.onboarding-active .mobile-nav, body.onbo
   .outline-button .icon { display: none; }
   .week-picker { gap: 3px; margin-top: 18px; padding: 4px; overflow-x: auto; }
   .day-tab { min-width: 47px; min-height: 64px; }
-  .dashboard-grid { gap: 17px; }
+  .dashboard-grid { grid-template-columns: 1fr; gap: 17px; }
   .dashboard-main, .dashboard-rail { gap: 17px; }
   .card-heading { padding: 20px 18px 18px; }
   .workout-hero { display: block; padding: 0 18px 22px; }
@@ -889,6 +889,10 @@ body.onboarding-active .app-shell, body.onboarding-active .mobile-nav, body.onbo
   .meal-icon { width: 31px; height: 31px; }
   .meal-calories { display: none; }
   .dashboard-rail { display: grid; grid-template-columns: 1fr; }
+  .workout-page-grid, .meals-page-grid, .progress-page-grid { grid-template-columns: 1fr; }
+  .progression-card { grid-template-columns: 1fr; }
+  .workout-detail-body { grid-template-columns: 1fr; }
+  .progress-intelligence-grid { grid-template-columns: 1fr; }
   .mix-card { grid-row: auto; min-height: 260px; }
   .glance-card { min-height: 260px; }
   .swap-card { min-height: 85px; }
@@ -951,6 +955,33 @@ body.onboarding-active .app-shell, body.onboarding-active .mobile-nav, body.onbo
   .mobile-nav button.is-active { color: #6e9545; }
   .mobile-nav button.is-active .icon { color: #6e9545; }
   .mobile-nav .icon { width: 18px; height: 18px; }
+}
+
+@media (max-width: 480px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .goal-choice-grid { grid-template-columns: repeat(2, 1fr); }
+  .progression-form { grid-template-columns: 1fr; }
+  .progression-form label:first-child, .progression-form .dark-button { grid-column: auto; }
+  .progression-result { grid-column: auto; margin-top: 4px; }
+  .progress-log-form { grid-template-columns: 1fr; }
+  .progress-log-form .primary-button { grid-column: auto; }
+  .measurement-form { grid-template-columns: 1fr; }
+  .measurement-form .outline-button { grid-column: auto; }
+  .composition-stats { grid-template-columns: repeat(2, 1fr); }
+  .welcome-actions { flex-wrap: wrap; gap: 10px; }
+  .welcome-actions .primary-button,
+  .welcome-actions .secondary-button { width: 100%; }
+  .workout-detail-summary { grid-template-columns: 1fr; }
+  .exercise-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .food-log-macros { grid-template-columns: 1fr; }
+  .profile-page-intro { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .profile-account-summary { width: 100%; }
+  .ai-drawer { top: 0; right: 0; width: 100vw; max-height: 100svh; border-radius: 0; }
+  .macro-row { grid-template-columns: 1fr; }
+  .macro-breakdown { grid-column: auto; }
+  .week-picker { gap: 2px; padding: 3px; }
+  .day-tab { min-width: 40px; min-height: 60px; }
+  .day-tab strong { font-size: 15px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
