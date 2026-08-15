@@ -169,13 +169,21 @@ const defaultState = {
   chat: []
 };
 
+const STATE_KEY = 'fitly_state_v2';
 function loadState() {
-  // Durable account data is hydrated from the server after the page loads.
-  // Keep only transient UI state in memory so sign-out cannot erase account data.
+  try {
+    const raw = localStorage.getItem(STATE_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      return { ...structuredClone(defaultState), ...saved };
+    }
+  } catch { /* ignore parse errors */ }
   return structuredClone(defaultState);
 }
 function saveState() {
-  // Profile, progress, activity, preferences, and chat are persisted by server APIs.
+  try {
+    localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  } catch { /* ignore quota errors */ }
 }
 
 let state = loadState();
