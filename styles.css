@@ -63,6 +63,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(79, 126, 91,
 .sidebar-user span { color: var(--muted); font-size: 10px; }
 .more-button, .kebab { margin-left: auto; padding: 5px; color: var(--muted); background: transparent; letter-spacing: 2px; cursor: pointer; }
 .account-menu { position: absolute; z-index: 50; right: 0; bottom: 47px; width: 190px; display: grid; gap: 5px; padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: #fff; box-shadow: 0 18px 42px rgba(35, 59, 47, .18); }
+.account-menu-backdrop { display: none; }
 .account-menu[hidden] { display: none; }
 .account-menu-label { color: #9aaa9e; font-size: 8px; font-weight: 700; letter-spacing: .14em; }
 .account-menu-name { overflow: hidden; color: var(--ink); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
@@ -846,6 +847,9 @@ body.onboarding-active .app-shell, body.onboarding-active .mobile-nav, body.onbo
   .goal-choice small { align-self: start; }
   .sidebar { display: none; }
   .main-content { width: 100%; margin-left: 0; }
+  .account-menu-backdrop { position: fixed; z-index: 49; inset: 0; display: block; background: rgba(17, 38, 30, .22); }
+  .account-menu-backdrop[hidden] { display: none; }
+  .account-menu { position: fixed; z-index: 50; top: 68px; right: 12px; bottom: auto; left: auto; width: min(260px, calc(100vw - 24px)); }
   .topbar { height: 66px; padding: 0 18px; }
   .mobile-menu { width: 30px; height: 30px; display: grid; place-items: center; padding: 0; color: var(--ink); background: transparent; }
   .breadcrumb span, .breadcrumb i { display: none; }

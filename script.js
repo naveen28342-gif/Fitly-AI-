@@ -421,10 +421,16 @@ function switchView(view) {
   if (view !== 'overview') showToast(`${view[0].toUpperCase()}${view.slice(1)} view selected`);
 }
 $$('[data-view]').forEach((button) => button.addEventListener('click', () => switchView(button.dataset.view)));
-$('.topbar-avatar')?.addEventListener('click', () => {
-  closeAccountMenu();
-  switchView('profile');
-  populateProfilePage();
+$('.topbar-avatar')?.addEventListener('click', (event) => {
+  event.stopPropagation();
+  if (window.innerWidth <= 768) {
+    const menu = $('.account-menu');
+    if (menu?.hidden) openAccountMenu(); else closeAccountMenu();
+  } else {
+    closeAccountMenu();
+    switchView('profile');
+    populateProfilePage();
+  }
 });
 
 function normalizePlan(plan, day = activeDay) {
@@ -1845,16 +1851,20 @@ function profileFromForm(form) {
 }
 function closeAccountMenu() {
   const menu = $('.account-menu');
+  const backdrop = $('.account-menu-backdrop');
   const trigger = $('.more-button');
   if (!menu) return;
   menu.hidden = true;
+  if (backdrop) backdrop.hidden = true;
   trigger?.setAttribute('aria-expanded', 'false');
 }
 function openAccountMenu() {
   const menu = $('.account-menu');
+  const backdrop = $('.account-menu-backdrop');
   const trigger = $('.more-button');
   if (!menu) return;
   menu.hidden = false;
+  if (backdrop) backdrop.hidden = false;
   trigger?.setAttribute('aria-expanded', 'true');
   updateUserChrome();
 }
@@ -1886,6 +1896,7 @@ $('.account-menu')?.addEventListener('click', async (event) => {
     window.location.reload();
   }
 });
+$('.account-menu-backdrop')?.addEventListener('click', closeAccountMenu);
 document.addEventListener('click', closeAccountMenu);
 let googleIdentityAttempts = 0;
 let googleOAuthHealth = null;
