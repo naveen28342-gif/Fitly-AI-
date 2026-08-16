@@ -525,35 +525,30 @@ function analyzeProgress(logs = state.progressLogs || [], profile = state.profil
 function localSummaryPlan(day, variation = 0) {
   const workout = { ...(fallbackWorkouts[day] || fallbackWorkouts.Tuesday) };
   const goal = state.profile?.goal || state.preferences.goal;
+  const isRecovery = day === 'Saturday' || day === 'Sunday';
   if (goal === 'Bulking') {
-    workout.title = 'Progressive power';
-    workout.type = 'STRENGTH • CONTROLLED';
+    workout.title = 'Progressive power'; workout.type = 'STRENGTH • CONTROLLED';
     workout.description = 'A progressive strength session that gives you enough stimulus to build without taking over your whole day.';
     workout.meta = ['07', '4', '175'];
   } else if (goal === 'Fat loss') {
-    workout.title = 'Lean & steady';
-    workout.type = 'FULL BODY • LOW IMPACT';
+    workout.title = 'Lean & steady'; workout.type = 'FULL BODY • LOW IMPACT';
     workout.description = 'A steady full-body session with simple movements and enough recovery to keep your energy useful.';
     workout.meta = ['06', '3', '140'];
   } else if (goal === 'Strength training' || state.preferences.goal === 'Build strength') {
-    workout.title = 'Strength foundations';
-    workout.type = 'STRENGTH • AT HOME';
+    workout.title = 'Strength foundations'; workout.type = 'STRENGTH • AT HOME';
     workout.description = 'Build a reliable strength base with controlled reps, simple progressions, and no complicated setup.';
     workout.meta = ['06', '3', '130'];
   } else if (state.preferences.goal === 'Get more energy') {
-    workout.title = day === 'Sunday' ? 'Walk & reset' : 'Energy lift';
-    workout.type = 'LOW IMPACT • ENERGY';
+    workout.title = day === 'Sunday' ? 'Walk & reset' : 'Energy lift'; workout.type = 'LOW IMPACT • ENERGY';
     workout.description = 'A bright, low-impact session designed to leave you more alert for classes, not wiped out.';
   } else if (state.preferences.goal === 'Feel more flexible') {
-    workout.title = 'Open & unwind';
-    workout.type = 'MOBILITY • AT HOME';
+    workout.title = 'Open & unwind'; workout.type = 'MOBILITY • AT HOME';
     workout.description = 'A slower mobility flow for shoulders, hips, and the stiffness that comes with long study sessions.';
     workout.meta = ['05', '2', '75'];
   }
   const adaptation = analyzeProgress(state.progressLogs, state.profile);
   if (adaptation.recoveryState === 'reduce') {
-    workout.title = 'Recovery reset';
-    workout.type = 'RECOVERY • LOW IMPACT';
+    workout.title = 'Recovery reset'; workout.type = 'RECOVERY • LOW IMPACT';
     workout.description = 'A lighter session for a lower-energy day: mobility, breathing, and controlled movement without chasing fatigue.';
     workout.meta = ['04', '2', '65'];
   } else if (Number(state.profile?.sessionMinutes) && Number(state.profile.sessionMinutes) <= 20) {
@@ -561,6 +556,32 @@ function localSummaryPlan(day, variation = 0) {
     workout.meta = ['04', '3', '90'];
   }
   if (state.preferences.equipment === 'Gym access') workout.type = workout.type.replace('AT HOME', 'GYM OPTIONAL');
+  // Enrich with detail fields so workout detail panel never shows blank dashes
+  const equipment = state.preferences.equipment === 'Gym access' ? 'Gym access' : state.preferences.equipment === 'Home equipment' ? 'Home / bands' : 'Bodyweight / dorm-friendly';
+  workout.focus = isRecovery ? 'Mobility + easy movement' : (goal === 'Bulking' ? 'Hypertrophy' : goal === 'Fat loss' ? 'Fat loss' : 'Strength');
+  workout.split = isRecovery ? 'Recovery / mobility' : 'Full body';
+  workout.equipment = equipment;
+  workout.duration = Number(state.profile?.sessionMinutes) || 30;
+  workout.warmup = { general: '5–8 min brisk walking or marching in place; finish with hip, shoulder, and ankle circles.', specific: 'Bodyweight squat × 10, arm circles × 10 each, hip hinge × 8.' };
+  workout.cooldown = ['3–5 min easy walking and slow breathing', 'Stretch the main muscles worked — hold each 20–30 sec without forcing range.'];
+  workout.progression = { method: 'Double progression', rule: 'Keep the same load until every set reaches the top of its rep range with good technique, then add the smallest useful load.', nextSession: 'If reps fall short for two sessions, keep the load and focus on technique.' };
+  workout.tracking = ['Log load, reps, and how the set felt (RPE)', 'Note any exercises that felt off'];
+  workout.weeklyVolume = isRecovery ? {} : { 'Full body': Number(workout.meta?.[1] || 3) };
+  if (!workout.exercises?.length) {
+    const ex = (sets, name, primary, reps, technique) => ({ name, primary, secondary: 'Core', pattern: 'Compound', equipment, sets, reps, rir: '2 RIR', rest: '90 sec', technique, commonMistakes: 'Rushing reps or losing form when tired.', progressionMethod: 'Add reps before adding load.', regression: 'Reduce range of motion.', substitutions: [], category: 'compound' });
+    workout.exercises = isRecovery ? [
+      ex(2, 'Easy walk or light movement', 'Cardio', '10–15 min', 'Keep pace conversational.'),
+      ex(2, 'Hip circles', 'Hips', '10 each side', 'Move slowly through a comfortable range.'),
+      ex(2, 'Cat-cow stretch', 'Spine', '10 reps', 'Breathe out on the arch, in on the cat.'),
+      ex(2, 'Box breathing', 'Recovery', '4 cycles', 'Inhale 4 sec, hold 4, exhale 4, hold 4.'),
+    ] : [
+      ex(3, 'Goblet squat', 'Quads', '8–12', 'Hold load close, keep ribs stacked, control the bottom.'),
+      ex(3, 'Push-up', 'Chest', '8–15', 'Straight line head to heel, lower chest between hands.'),
+      ex(3, 'One-arm backpack row', 'Upper back', '10–15 / side', 'Pull elbow toward hip, keep torso still.'),
+      ex(3, 'Glute bridge', 'Glutes', '12–20', 'Drive through heels, squeeze glutes at top.'),
+      ex(2, 'Dead bug', 'Core', '8 / side', 'Lower arm and opposite leg slowly, keep lower back flat.'),
+    ];
+  }
   return normalizePlan({ workout, meals: getLocalMeals(state.preferences.food, state.profile?.diet || 'omnivore', day, variation), profile: state.profile, nutrition: calculateNutrition(state.profile) }, day);
 }
 function localPlan(day, variation = 0) {
