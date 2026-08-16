@@ -32,7 +32,10 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(79, 126, 91,
 .icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 .app-shell { min-height: 100vh; display: flex; }
-.sidebar { width: 256px; min-height: 100vh; position: fixed; z-index: 20; inset: 0 auto 0 0; display: flex; flex-direction: column; padding: 32px 18px 22px; background: #fbfdf9; border-right: 1px solid var(--line); }
+.sidebar { width: 256px; min-height: 100vh; position: fixed; z-index: 20; inset: 0 auto 0 0; display: flex; flex-direction: column; padding: 32px 18px 22px; background: #fbfdf9; border-right: 1px solid var(--line); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #c8d9c0 transparent; }
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: #c8d9c0; border-radius: 99px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
 .sidebar-close { display: none; }
 .sidebar-drawer-backdrop { display: none; }
 .brand-lockup { display: flex; align-items: center; gap: 9px; padding: 0 14px 46px; }
