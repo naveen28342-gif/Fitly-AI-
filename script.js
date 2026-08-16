@@ -242,7 +242,14 @@ function endOfMonth(date = new Date()) {
 }
 function buildMonthlyWorkoutPlans(profile = {}, preferences = state.preferences, adaptation = state.progressAnalysis || analyzeProgress(state.progressLogs, profile)) {
   const engine = window.FitlyWorkoutEngine;
-  const weekEntries = engine ? engine.buildWeek(profile, preferences, adaptation) : weekSchedule(profile);
+  // Build a week schedule: use engine if available, otherwise derive from fallbackWorkouts
+  const weekEntries = engine
+    ? engine.buildWeek(profile, preferences, adaptation)
+    : dayNames.map((day) => {
+        const fb = fallbackWorkouts[day] || fallbackWorkouts.Tuesday;
+        const isTraining = day !== 'Saturday' && day !== 'Sunday';
+        return { day, title: fb.title, split: 'Full body', type: fb.type, focus: '', duration: Number(fb.meta?.[2]) || 30, isTraining, workout: fb };
+      });
   const scheduleMap = new Map(weekEntries.map((entry) => [entry.day, entry]));
   const plans = [];
   const today = startOfDay();
@@ -252,8 +259,10 @@ function buildMonthlyWorkoutPlans(profile = {}, preferences = state.preferences,
   const current = new Date(start);
   while (current <= end) {
     const day = dayNameFromDate(current);
-    const entry = scheduleMap.get(day) || { day, split: 'Recovery / mobility', isTraining: false };
-    const workout = engine ? engine.buildWorkout(day, entry.split, profile, preferences, adaptation) : localSummaryPlan(day);
+    const entry = scheduleMap.get(day) || { day, split: 'Recovery / mobility', isTraining: false, title: 'Rest day', type: 'RECOVERY', duration: 0 };
+    const workout = engine
+      ? engine.buildWorkout(day, entry.split, profile, preferences, adaptation)
+      : { ...(fallbackWorkouts[day] || fallbackWorkouts.Tuesday), focus: entry.split, duration: entry.duration || 30 };
     plans.push({ date: new Date(current), day, workout, split: entry.split, isTraining: entry.isTraining, status: entry.isTraining ? 'Planned' : 'Recovery' });
     current.setDate(current.getDate() + 1);
   }
