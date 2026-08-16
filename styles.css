@@ -130,8 +130,6 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(79, 126, 91,
 .outline-button:hover { background: #e9f0e5; }
 .outline-button .icon { width: 13px; height: 13px; color: #85a05f; }
 .week-section { margin-bottom: 27px; }
-.week-nav-controls { display: flex; align-items: center; gap: 8px; }
-.week-nav-prev:disabled, .week-nav-next:disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
 .week-picker { display: grid; grid-template-columns: repeat(7, minmax(50px, 1fr)); gap: 8px; margin-top: 22px; padding: 7px; border: 1px solid #e2eae0; border-radius: 15px; background: rgba(255,255,255,.52); }
 .day-tab { position: relative; min-height: 68px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #8b9b92; border-radius: 10px; background: transparent; transition: .2s ease; }
 .day-tab span { font-size: 9px; font-weight: 700; letter-spacing: .08em; }

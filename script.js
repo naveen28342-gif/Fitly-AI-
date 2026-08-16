@@ -189,7 +189,6 @@ function saveState() {
 let state = loadState();
 let activePlan = null;
 let activeDay = dayNames[(new Date().getDay() + 6) % 7]; // always start on today
-let weekOffset = 0; // 0 = current week, 1 = next week, etc.
 let planRequestId = 0;
 let workoutLibraryMode = 'week';
 let toastTimer;
@@ -382,41 +381,13 @@ function renderLiveProgress() {
   }
 }
 
-function dayDate(day, offset = weekOffset) {
+function dayDate(day) {
   const now = new Date();
   const monday = new Date(now);
-  const todayOffset = (now.getDay() + 6) % 7;
+  const offset = (now.getDay() + 6) % 7;
   monday.setHours(12, 0, 0, 0);
-  monday.setDate(now.getDate() - todayOffset + dayNames.indexOf(day) + offset * 7);
+  monday.setDate(now.getDate() - offset + dayNames.indexOf(day));
   return monday;
-}
-
-// Returns true when every training day in the given week-offset has a completedAt log
-function isWeekComplete(offset = weekOffset) {
-  const profile = state.profile || {};
-  const engine = window.FitlyWorkoutEngine;
-  const trainingDays = engine
-    ? engine.buildWeek(profile, state.preferences, state.progressAnalysis || analyzeProgress(state.progressLogs, profile))
-        .filter((e) => e.isTraining).map((e) => e.day)
-    : ['Monday', 'Wednesday', 'Friday']; // sensible fallback
-  if (!trainingDays.length) return false;
-  return trainingDays.every((day) => {
-    const targetDate = dateKey(dayDate(day, offset));
-    return Object.values(state.workouts || {}).some(
-      (log) => log.completedAt && dateKey(log.completedAt) === targetDate
-    );
-  });
-}
-
-// Advance weekOffset and re-render when the current week is fully complete
-function checkWeekAdvance() {
-  if (weekOffset === 0 && isWeekComplete(0)) {
-    weekOffset = 1;
-    activeDay = 'Monday'; // start next week on Monday
-    refreshWeekPicker();
-    updateLiveHeader();
-    showToast('This week is done — showing next week 🎉');
-  }
 }
 function dateLabel(date) { return new Intl.DateTimeFormat('en-IN', { month: 'long', day: 'numeric', year: 'numeric' }).format(date); }
 function updateLiveHeader() {
@@ -442,15 +413,10 @@ function switchView(view) {
     $('#welcome-heading').innerHTML = copy.title;
     $('.welcome-subtitle').textContent = copy.subtitle;
   }
-  if (view === 'workout') {
-    refreshWeekPicker();
-    renderWorkoutLibrary();
-  }
-  if (view === 'meals' && activePlan) {
-    renderMeals();
-  }
   document.body.dataset.view = view;
   trackEvent('view_opened', { view });
+  if (view === 'profile') document.title = 'Fitly — Profile';
+  document.title = `Fitly — ${view === 'overview' ? 'Your plan, made for you' : view === 'workout' ? 'My workouts' : view === 'meals' ? 'Meal plans' : 'Progress'}`;
   document.title = `Fitly — ${{ overview: 'Your plan, made for you', workout: 'My workouts', meals: 'Meal plans', progress: 'Progress', profile: 'Profile', privacy: 'Privacy policy' }[view] || 'Your plan'}`;
   if (view !== 'overview') showToast(`${view[0].toUpperCase()}${view.slice(1)} view selected`);
 }
@@ -719,11 +685,7 @@ function updateExercisePreviewArrow(list = $('.exercise-preview .exercise-list')
 function renderWorkoutLibrary() {
   const list = $('.workout-library-list');
   if (!list) return;
-  const week = activePlan?.week;
-  const hasWeek = Array.isArray(week) && week.length > 0;
-  // If no week plan is available locally, always show the monthly view
-  const effectiveMode = hasWeek ? workoutLibraryMode : 'month';
-  if (effectiveMode === 'month') {
+  if (workoutLibraryMode === 'month') {
     const today = startOfDay();
     const monthlyPlans = buildMonthlyWorkoutPlans(state.profile || {}, state.preferences, state.progressAnalysis || analyzeProgress(state.progressLogs, state.profile || {}));
     list.innerHTML = monthlyPlans.map((entry, index) => {
@@ -743,6 +705,8 @@ function renderWorkoutLibrary() {
     lockWorkoutRows();
     return;
   }
+  const week = activePlan?.week;
+  if (!Array.isArray(week) || !week.length) { list.innerHTML = ''; lockWorkoutRows(); return; }
   const todayIndex = (new Date().getDay() + 6) % 7;
   list.innerHTML = week.map((entry, index) => {
     const isToday = entry.day === activeDay;
@@ -1244,7 +1208,12 @@ async function updateDay(day, { force = false, quiet = false } = {}) {
   hydrateMealCompletionForDay(day);
   trackEvent('day_selected', { day, date: dayDate(day).toISOString() });
   saveState();
-  refreshWeekPicker();
+  $$('.day-tab').forEach((tab) => {
+    const isActive = tab.dataset.day === day;
+    tab.classList.toggle('is-active', isActive);
+    tab.setAttribute('aria-selected', String(isActive));
+    tab.querySelector('strong').textContent = dayDate(tab.dataset.day).getDate();
+  });
   updateLiveHeader();
   activePlan = normalizePlan(localPlan(day), day);
   renderWorkout();
@@ -1260,41 +1229,14 @@ async function updateDay(day, { force = false, quiet = false } = {}) {
   if (!quiet) showToast(`${day}'s plan is ready`);
 }
 function lockDayTabs() {
-  // When viewing a future week all days are accessible (planning mode).
-  // For the current week, only lock days after today.
   const todayIndex = (new Date().getDay() + 6) % 7; // 0=Mon … 6=Sun
   $$('.day-tab').forEach((tab) => {
     const tabIndex = dayNames.indexOf(tab.dataset.day);
-    const isFuture = weekOffset === 0 && tabIndex > todayIndex;
+    const isFuture = tabIndex > todayIndex;
     tab.disabled = isFuture;
     tab.classList.toggle('is-locked', isFuture);
     tab.title = isFuture ? 'Future days are not yet accessible' : '';
   });
-}
-
-// Re-render all day-tab dates, active state, completion badges and lock state
-function refreshWeekPicker() {
-  const weekLabel = $('#week-heading');
-  if (weekLabel) {
-    weekLabel.textContent = weekOffset === 0 ? 'This week' : weekOffset === 1 ? 'Next week' : `In ${weekOffset} weeks`;
-  }
-  const weekNavPrev = $('.week-nav-prev');
-  const weekNavNext = $('.week-nav-next');
-  if (weekNavPrev) weekNavPrev.disabled = weekOffset <= 0;
-  if (weekNavNext) weekNavNext.disabled = weekOffset >= 4;
-  $$('.day-tab').forEach((tab) => {
-    const isActive = tab.dataset.day === activeDay;
-    tab.querySelector('strong').textContent = dayDate(tab.dataset.day).getDate();
-    tab.classList.toggle('is-active', isActive);
-    tab.setAttribute('aria-selected', String(isActive));
-    tab.classList.toggle('is-complete', (() => {
-      const targetDate = dateKey(dayDate(tab.dataset.day));
-      return Object.values(state.workouts || {}).some(
-        (log) => log.completedAt && dateKey(log.completedAt) === targetDate
-      );
-    })());
-  });
-  lockDayTabs();
 }
 function lockWorkoutRows() {
   const today = startOfDay();
@@ -1320,27 +1262,11 @@ function lockWorkoutRows() {
 lockDayTabs();
 lockWorkoutRows();
 $$('.day-tab').forEach((tab) => tab.addEventListener('click', () => {
-  if (tab.disabled) return;
+  const todayIndex = (new Date().getDay() + 6) % 7;
+  const tabIndex = dayNames.indexOf(tab.dataset.day);
+  if (tabIndex > todayIndex) return; // block future days only
   updateDay(tab.dataset.day);
 }));
-
-$('.week-nav-prev')?.addEventListener('click', () => {
-  if (weekOffset <= 0) return;
-  weekOffset--;
-  // When returning to current week, reset activeDay to today
-  if (weekOffset === 0) activeDay = dayNames[(new Date().getDay() + 6) % 7];
-  refreshWeekPicker();
-  updateLiveHeader();
-  updateDay(activeDay, { quiet: true });
-});
-$('.week-nav-next')?.addEventListener('click', () => {
-  if (weekOffset >= 4) return;
-  weekOffset++;
-  activeDay = 'Monday'; // start at Monday of the new week
-  refreshWeekPicker();
-  updateLiveHeader();
-  updateDay(activeDay, { quiet: true });
-});
 
 function updateWorkoutTimer() {
   const workoutLog = state.workouts[activeDay] || {};
@@ -1369,8 +1295,6 @@ $$('.start-workout').forEach((button) => button.addEventListener('click', () => 
     state.workouts[activeDay] = { ...current, completedAt, durationSeconds, elapsedSeconds: durationSeconds, activeStartedAt: null, pausedAt: null };
     syncActivity({ id: `workout-${activeDay}-${now}`, type: 'workout', day: activeDay, date: completedAt, completed: true, durationSeconds });
     showToast('Workout complete — all exercises are checked');
-    refreshWeekPicker();
-    setTimeout(checkWeekAdvance, 800); // slight delay so the toast is readable first
   } else if (isPaused) {
     state.workouts[activeDay] = { ...current, activeStartedAt: now, pausedAt: null, paused: false };
     trackEvent('workout_resumed', { day: activeDay, activeStartedAt: now, elapsedSeconds: workoutElapsedSeconds(current, now) });
@@ -1572,7 +1496,11 @@ function closePreferences() {
   modal.classList.remove('is-open');
   modal.setAttribute('aria-hidden', 'true');
 }
-$$('[data-action="preferences"]').forEach((button) => button.addEventListener('click', openPreferences));
+$$('.nav-item[data-action="preferences"]').forEach((button) => button.addEventListener('click', openPreferences));
+$$('.upgrade-card [data-action="preferences"]').forEach((button) => {
+  if (button.firstChild) button.firstChild.textContent = 'Edit profile ';
+  button.addEventListener('click', () => { switchView('profile'); populateProfilePage(); });
+});
 $('.modal-close').addEventListener('click', closePreferences);
 $('.preferences-modal').addEventListener('click', (event) => { if (event.target === event.currentTarget) closePreferences(); });
 $$('.choice').forEach((choice) => choice.addEventListener('click', () => {
@@ -2237,8 +2165,6 @@ async function hydrateAccount() {
 
 renderPreferenceChips();
 updateLiveHeader();
-refreshWeekPicker();
-checkWeekAdvance();
 hydrateAccount().then(() => hydrateSignedInData());
 async function checkLiveService() {
   const statusText = $('.ai-status-text');
