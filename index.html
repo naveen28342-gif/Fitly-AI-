@@ -207,7 +207,11 @@
         <section class="week-section" aria-labelledby="week-heading">
           <div class="section-heading">
             <div><p class="eyebrow">YOUR ROUTINE</p><h2 id="week-heading">This week</h2></div>
-            <button class="outline-button generate-button"><svg class="icon"><use href="#icon-spark"/></svg> Generate new plan</button>
+            <div class="week-nav-controls">
+              <button class="circle-arrow week-nav-prev is-return" aria-label="Previous week" disabled><svg class="icon"><use href="#icon-arrow"/></svg></button>
+              <button class="circle-arrow week-nav-next" aria-label="Next week"><svg class="icon"><use href="#icon-arrow"/></svg></button>
+              <button class="outline-button generate-button"><svg class="icon"><use href="#icon-spark"/></svg> Generate new plan</button>
+            </div>
           </div>
           <div class="week-picker" role="tablist" aria-label="Choose a day">
             <button class="day-tab" data-day="Monday" role="tab"><span>MON</span><strong>13</strong><i></i></button>
