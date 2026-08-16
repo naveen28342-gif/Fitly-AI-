@@ -246,9 +246,9 @@ function buildMonthlyWorkoutPlans(profile = {}, preferences = state.preferences,
   const scheduleMap = new Map(weekEntries.map((entry) => [entry.day, entry]));
   const plans = [];
   const today = startOfDay();
-  // Start from the 1st of the current month, end on the last day of next month
+  // Start from the 1st of the current month, end on the last day of the current month
   const start = new Date(today.getFullYear(), today.getMonth(), 1);
-  const end = endOfMonth(new Date(today.getFullYear(), today.getMonth() + 1, 1));
+  const end = endOfMonth(today);
   const current = new Date(start);
   while (current <= end) {
     const day = dayNameFromDate(current);
