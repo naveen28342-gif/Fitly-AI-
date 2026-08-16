@@ -1916,6 +1916,7 @@ $('.account-menu')?.addEventListener('click', async (event) => {
   if (action === 'signout') {
     await trackEvent('signed_out');
     try { await fetch('/api/logout', { method: 'POST' }); } catch { /* Local sign-out still completes if the server is unavailable. */ }
+    localStorage.removeItem(STATE_KEY);
     window.location.reload();
   }
 });
