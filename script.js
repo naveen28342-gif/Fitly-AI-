@@ -1544,11 +1544,7 @@ function closePreferences() {
   modal.classList.remove('is-open');
   modal.setAttribute('aria-hidden', 'true');
 }
-$$('.nav-item[data-action="preferences"]').forEach((button) => button.addEventListener('click', openPreferences));
-$$('.upgrade-card [data-action="preferences"]').forEach((button) => {
-  if (button.firstChild) button.firstChild.textContent = 'Edit profile ';
-  button.addEventListener('click', () => { switchView('profile'); populateProfilePage(); });
-});
+$$('[data-action="preferences"]').forEach((button) => button.addEventListener('click', openPreferences));
 $('.modal-close').addEventListener('click', closePreferences);
 $('.preferences-modal').addEventListener('click', (event) => { if (event.target === event.currentTarget) closePreferences(); });
 $$('.choice').forEach((choice) => choice.addEventListener('click', () => {
