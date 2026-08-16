@@ -845,7 +845,47 @@ body.onboarding-active .app-shell, body.onboarding-active .mobile-nav, body.onbo
   .goal-choice-icon { grid-row: auto; }
   .goal-choice strong { align-self: start; }
   .goal-choice small { align-self: start; }
-  .sidebar { display: none; }
+  .sidebar {
+    width: 280px;
+    min-height: 100svh;
+    position: fixed;
+    z-index: 40;
+    inset: 0 auto 0 0;
+    transform: translateX(-100%);
+    transition: transform .28s ease, box-shadow .28s ease;
+    box-shadow: none;
+  }
+  .sidebar.is-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 32px rgba(20, 45, 38, .18);
+  }
+  .sidebar-drawer-backdrop {
+    position: fixed;
+    z-index: 39;
+    inset: 0;
+    background: rgba(17, 38, 30, .3);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .28s ease, visibility .28s ease;
+  }
+  .sidebar-drawer-backdrop.is-visible {
+    opacity: 1;
+    visibility: visible;
+  }
+  .sidebar-close {
+    display: grid;
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    padding: 0;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: #fff;
+  }
   .main-content { width: 100%; margin-left: 0; }
   .account-menu-backdrop { position: fixed; z-index: 49; inset: 0; display: block; background: rgba(17, 38, 30, .22); }
   .account-menu-backdrop[hidden] { display: none; }

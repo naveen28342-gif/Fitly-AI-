@@ -1782,7 +1782,30 @@ $('.exercise-preview .circle-arrow').addEventListener('click', () => {
   list.scrollBy({ left: atEnd ? -amount : amount, behavior: 'smooth' });
   window.setTimeout(() => updateExercisePreviewArrow(list), 350);
 });
-$('.mobile-menu').addEventListener('click', () => showToast('Use the bottom bar to move around Fitly'));
+const sidebar = $('.sidebar');
+const sidebarBackdrop = $('.sidebar-drawer-backdrop');
+
+function openSidebar() {
+  sidebar?.classList.add('is-open');
+  sidebarBackdrop?.classList.add('is-visible');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+  sidebar?.classList.remove('is-open');
+  sidebarBackdrop?.classList.remove('is-visible');
+  document.body.style.overflow = '';
+}
+
+$('.mobile-menu')?.addEventListener('click', openSidebar);
+$('.sidebar-close')?.addEventListener('click', closeSidebar);
+sidebarBackdrop?.addEventListener('click', closeSidebar);
+
+// Close drawer when any nav item or action button inside sidebar is tapped
+$$('.sidebar .nav-item, .sidebar [data-action]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    if (window.innerWidth <= 768) closeSidebar();
+  });
+});
 
 const onboardingScreen = $('#onboarding-screen');
 function setOnboardingStep(step) {
