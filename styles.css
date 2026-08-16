@@ -604,6 +604,7 @@ body.onboarding-active .app-shell, body.onboarding-active .mobile-nav, body.onbo
 .meal-plan-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
 .meal-plan-actions .dark-button { min-height: 36px; padding: 0 12px; font-size: 9px; }
 .workout-library-list { border-top: 1px solid var(--line); }
+.library-month-heading { padding: 11px 27px 8px; color: #8da080; background: #f7faf5; border-bottom: 1px solid var(--line); font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .workout-library-row { width: 100%; min-height: 82px; display: flex; align-items: center; gap: 14px; padding: 10px 27px; color: var(--ink); border-bottom: 1px solid #eef2ed; background: transparent; text-align: left; transition: .2s ease; }
 .workout-library-row:hover, .workout-library-row.is-selected { background: #f5faef; }
 .workout-library-row.is-locked:hover { background: transparent; }

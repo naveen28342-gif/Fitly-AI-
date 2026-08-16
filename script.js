@@ -245,8 +245,11 @@ function buildMonthlyWorkoutPlans(profile = {}, preferences = state.preferences,
   const weekEntries = engine ? engine.buildWeek(profile, preferences, adaptation) : weekSchedule(profile);
   const scheduleMap = new Map(weekEntries.map((entry) => [entry.day, entry]));
   const plans = [];
-  const current = startOfDay();
-  const end = endOfMonth(current);
+  const today = startOfDay();
+  // Start from the 1st of the current month, end on the last day of next month
+  const start = new Date(today.getFullYear(), today.getMonth(), 1);
+  const end = endOfMonth(new Date(today.getFullYear(), today.getMonth() + 1, 1));
+  const current = new Date(start);
   while (current <= end) {
     const day = dayNameFromDate(current);
     const entry = scheduleMap.get(day) || { day, split: 'Recovery / mobility', isTraining: false };
@@ -688,6 +691,7 @@ function renderWorkoutLibrary() {
   if (workoutLibraryMode === 'month') {
     const today = startOfDay();
     const monthlyPlans = buildMonthlyWorkoutPlans(state.profile || {}, state.preferences, state.progressAnalysis || analyzeProgress(state.progressLogs, state.profile || {}));
+    let lastMonth = -1;
     list.innerHTML = monthlyPlans.map((entry, index) => {
       const entryDate = startOfDay(entry.date);
       const dateKeyValue = dateKey(entryDate);
@@ -695,11 +699,22 @@ function renderWorkoutLibrary() {
       const workoutLog = state.workouts[entry.day] || {};
       const isCompleted = !isFuture && Boolean(workoutLog.completedAt);
       const isToday = dateKeyValue === dateKey(today);
+      const isSelected = entry.day === activeDay && isToday;
       const iconClass = ['blue-workout', 'coral-workout', 'mint-workout', 'yellow-workout'][index % 4];
       const status = isCompleted ? 'Completed' : isToday ? 'Today' : isFuture ? 'Locked' : entry.isTraining ? 'Planned' : 'Recovery';
       const completeClass = isCompleted ? ' is-complete' : '';
       const lockClass = isFuture ? ' is-locked' : '';
-      return `<div class="workout-library-row workout-month-row${completeClass}${lockClass}" data-day="${escapeHtml(entry.day)}" data-date="${escapeHtml(dateKeyValue)}"><span class="library-day">${escapeHtml(entry.day.slice(0, 3).toUpperCase())}<strong>${entryDate.getDate()}</strong></span><span class="library-workout-icon ${iconClass}"><svg class="icon"><use href="#icon-${entry.isTraining ? 'dumbbell' : 'leaf'}"/></svg></span><span class="library-copy"><strong>${escapeHtml(entry.workout.title)}</strong><small>${escapeHtml(entry.workout.focus || entry.split)} <i>•</i> ${escapeHtml(entry.workout.duration)} min <i>•</i> ${escapeHtml(entry.workout.type)}</small></span><span class="library-status${isCompleted ? ' completed' : ''}">${status}</span></div>`;
+      const selectedClass = isSelected ? ' is-selected' : '';
+      const entryMonth = entryDate.getMonth();
+      const monthHeader = entryMonth !== lastMonth
+        ? `<div class="library-month-heading">${entryDate.toLocaleString('en-IN', { month: 'long', year: 'numeric' })}</div>`
+        : '';
+      lastMonth = entryMonth;
+      // Past and today = clickable button; future = non-interactive div
+      if (isFuture) {
+        return `${monthHeader}<div class="workout-library-row workout-month-row${completeClass}${lockClass}" data-day="${escapeHtml(entry.day)}" data-date="${escapeHtml(dateKeyValue)}"><span class="library-day">${escapeHtml(entry.day.slice(0, 3).toUpperCase())}<strong>${entryDate.getDate()}</strong></span><span class="library-workout-icon ${iconClass}"><svg class="icon"><use href="#icon-${entry.isTraining ? 'dumbbell' : 'leaf'}"/></svg></span><span class="library-copy"><strong>${escapeHtml(entry.workout.title)}</strong><small>${escapeHtml(entry.workout.focus || entry.split)} <i>•</i> ${escapeHtml(entry.workout.duration)} min <i>•</i> ${escapeHtml(entry.workout.type)}</small></span><span class="library-status">${status}</span></div>`;
+      }
+      return `${monthHeader}<button class="workout-library-row workout-month-row workout-select${completeClass}${selectedClass}" data-day="${escapeHtml(entry.day)}" data-date="${escapeHtml(dateKeyValue)}"><span class="library-day">${escapeHtml(entry.day.slice(0, 3).toUpperCase())}<strong>${entryDate.getDate()}</strong></span><span class="library-workout-icon ${iconClass}"><svg class="icon"><use href="#icon-${entry.isTraining ? 'dumbbell' : 'leaf'}"/></svg></span><span class="library-copy"><strong>${escapeHtml(entry.workout.title)}</strong><small>${escapeHtml(entry.workout.focus || entry.split)} <i>•</i> ${escapeHtml(entry.workout.duration)} min <i>•</i> ${escapeHtml(entry.workout.type)}</small></span><span class="library-status${isCompleted ? ' completed' : ''}">${status}</span><svg class="icon library-arrow"><use href="#icon-arrow"/></svg></button>`;
     }).join('');
     updateWorkoutLibraryToggle();
     lockWorkoutRows();
@@ -1218,6 +1233,7 @@ async function updateDay(day, { force = false, quiet = false } = {}) {
   activePlan = normalizePlan(localPlan(day), day);
   renderWorkout();
   renderMeals();
+  renderWorkoutLibrary();
   const loadedPlan = await fetchPlan(day, force);
   if (!loadedPlan || activeDay !== day) return;
   activePlan = loadedPlan;
@@ -1225,14 +1241,15 @@ async function updateDay(day, { force = false, quiet = false } = {}) {
   saveState();
   renderWorkout();
   renderMeals();
+  renderWorkoutLibrary();
   renderProgressIntelligence(activePlan.adaptation || analyzeProgress(state.progressLogs, state.profile));
   if (!quiet) showToast(`${day}'s plan is ready`);
 }
 function lockDayTabs() {
-  const todayIndex = (new Date().getDay() + 6) % 7; // 0=Mon … 6=Sun
+  const today = startOfDay();
   $$('.day-tab').forEach((tab) => {
-    const tabIndex = dayNames.indexOf(tab.dataset.day);
-    const isFuture = tabIndex > todayIndex;
+    const tabDate = startOfDay(dayDate(tab.dataset.day));
+    const isFuture = tabDate > today;
     tab.disabled = isFuture;
     tab.classList.toggle('is-locked', isFuture);
     tab.title = isFuture ? 'Future days are not yet accessible' : '';
@@ -1262,9 +1279,9 @@ function lockWorkoutRows() {
 lockDayTabs();
 lockWorkoutRows();
 $$('.day-tab').forEach((tab) => tab.addEventListener('click', () => {
-  const todayIndex = (new Date().getDay() + 6) % 7;
-  const tabIndex = dayNames.indexOf(tab.dataset.day);
-  if (tabIndex > todayIndex) return; // block future days only
+  const today = startOfDay();
+  const tabDate = startOfDay(dayDate(tab.dataset.day));
+  if (tabDate > today) return; // block future days only
   updateDay(tab.dataset.day);
 }));
 
@@ -1447,10 +1464,24 @@ $$('.workout-select').forEach((button) => button.addEventListener('click', () =>
 $('.workout-library-list')?.addEventListener('click', (event) => {
   const button = event.target.closest('.workout-select');
   if (!button?.dataset.day) return;
-  const todayIndex = (new Date().getDay() + 6) % 7;
-  const tabIndex = dayNames.indexOf(button.dataset.day);
-  if (tabIndex > todayIndex) return; // future days are locked
-  updateDay(button.dataset.day, { quiet: true });
+  const today = startOfDay();
+  // In month mode rows have data-date (actual date); use it for future check
+  if (button.dataset.date) {
+    const rowDate = startOfDay(parseLocalDate(button.dataset.date));
+    if (rowDate > today) return; // future date — locked
+    // Sync week-picker to the week that contains this date
+    const targetDay = button.dataset.day;
+    // Move active week context to this day's week
+    activeDay = targetDay;
+    state.selectedDay = targetDay;
+    saveState();
+    updateDay(targetDay, { quiet: true });
+  } else {
+    const todayIndex = (new Date().getDay() + 6) % 7;
+    const tabIndex = dayNames.indexOf(button.dataset.day);
+    if (tabIndex > todayIndex) return; // future days in current week — locked
+    updateDay(button.dataset.day, { quiet: true });
+  }
 });
 $$('.library-view-all').forEach((button) => button.addEventListener('click', () => {
   workoutLibraryMode = workoutLibraryMode === 'month' ? 'week' : 'month';
