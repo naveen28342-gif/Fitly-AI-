@@ -685,7 +685,11 @@ function updateExercisePreviewArrow(list = $('.exercise-preview .exercise-list')
 function renderWorkoutLibrary() {
   const list = $('.workout-library-list');
   if (!list) return;
-  if (workoutLibraryMode === 'month') {
+  const week = activePlan?.week;
+  const hasWeek = Array.isArray(week) && week.length > 0;
+  // If no week plan is available locally, always show the monthly view
+  const effectiveMode = hasWeek ? workoutLibraryMode : 'month';
+  if (effectiveMode === 'month') {
     const today = startOfDay();
     const monthlyPlans = buildMonthlyWorkoutPlans(state.profile || {}, state.preferences, state.progressAnalysis || analyzeProgress(state.progressLogs, state.profile || {}));
     list.innerHTML = monthlyPlans.map((entry, index) => {
@@ -705,8 +709,6 @@ function renderWorkoutLibrary() {
     lockWorkoutRows();
     return;
   }
-  const week = activePlan?.week;
-  if (!Array.isArray(week) || !week.length) { list.innerHTML = ''; lockWorkoutRows(); return; }
   const todayIndex = (new Date().getDay() + 6) % 7;
   list.innerHTML = week.map((entry, index) => {
     const isToday = entry.day === activeDay;
@@ -1496,11 +1498,7 @@ function closePreferences() {
   modal.classList.remove('is-open');
   modal.setAttribute('aria-hidden', 'true');
 }
-$$('.nav-item[data-action="preferences"]').forEach((button) => button.addEventListener('click', openPreferences));
-$$('.upgrade-card [data-action="preferences"]').forEach((button) => {
-  if (button.firstChild) button.firstChild.textContent = 'Edit profile ';
-  button.addEventListener('click', () => { switchView('profile'); populateProfilePage(); });
-});
+$$('[data-action="preferences"]').forEach((button) => button.addEventListener('click', openPreferences));
 $('.modal-close').addEventListener('click', closePreferences);
 $('.preferences-modal').addEventListener('click', (event) => { if (event.target === event.currentTarget) closePreferences(); });
 $$('.choice').forEach((choice) => choice.addEventListener('click', () => {
