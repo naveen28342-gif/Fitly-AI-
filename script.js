@@ -410,7 +410,7 @@ function updateLiveHeader() {
 }
 
 const viewCopy = {
-  overview: { title: 'Your plan, <em>made for you.</em>', subtitle: 'A little movement, food that feels like home, and a plan that fits around your lectures.' },
+  overview: { title: 'Your plan, <em>made by<br/>Fitly AI.</em>', subtitle: 'A little movement, food that feels like home, and a plan that fits around your lectures.' },
   workout: { title: 'Your next <em>move starts here.</em>', subtitle: 'Short, useful sessions that fit around classes, commutes, and the energy you actually have today.' },
   meals: { title: 'Fuel that <em>fits your day.</em>', subtitle: 'Easy, budget-aware meals built around the ingredients and food traditions you already know.' },
   progress: { title: 'Small wins, <em>stacked up.</em>', subtitle: 'See the rhythm behind your week and keep building habits that last beyond the semester.' },
@@ -428,8 +428,7 @@ function switchView(view) {
   document.body.dataset.view = view;
   trackEvent('view_opened', { view });
   if (view === 'profile') document.title = 'Fitly — Profile';
-  document.title = `Fitly — ${view === 'overview' ? 'Your plan, made for you' : view === 'workout' ? 'My workouts' : view === 'meals' ? 'Meal plans' : 'Progress'}`;
-  document.title = `Fitly — ${{ overview: 'Your plan, made for you', workout: 'My workouts', meals: 'Meal plans', progress: 'Progress', profile: 'Profile', privacy: 'Privacy policy' }[view] || 'Your plan'}`;
+  document.title = `Fitly — ${{ overview: 'Your plan, made by Fitly AI', workout: 'My workouts', meals: 'Meal plans', progress: 'Progress', profile: 'Profile', privacy: 'Privacy policy' }[view] || 'Your plan'}`;
   if (view !== 'overview') showToast(`${view[0].toUpperCase()}${view.slice(1)} view selected`);
 }
 $$('[data-view]').forEach((button) => button.addEventListener('click', () => switchView(button.dataset.view)));
