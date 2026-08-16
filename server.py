@@ -1155,10 +1155,17 @@ def _serve_static(pathname: str):
         return _serve_404()
     ext = file_path.suffix.lower()
     mime = _MIME_TYPES.get(ext, "application/octet-stream")
-    cache = "no-cache" if ext in (".html", ".js", ".css") else "public, max-age=3600"
-    resp = make_response(file_path.read_bytes())
+    cache = "no-store" if ext in (".html", ".js", ".css") else "public, max-age=3600"
+    file_bytes = file_path.read_bytes()
+    import hashlib as _hl
+    etag = '"' + _hl.md5(file_bytes).hexdigest()[:16] + '"'
+    if_none_match = request.headers.get("If-None-Match", "")
+    if if_none_match == etag:
+        return make_response("", 304)
+    resp = make_response(file_bytes)
     resp.headers["Content-Type"] = mime
     resp.headers["Cache-Control"] = cache
+    resp.headers["ETag"] = etag
     resp.headers["Content-Security-Policy-Report-Only"] = _CSP_STATIC
     if file_path.name == "sw.js":
         resp.headers["Service-Worker-Allowed"] = "/"
