@@ -720,13 +720,22 @@ function renderWorkoutLibrary() {
     lockWorkoutRows();
     return;
   }
-  const week = activePlan?.week;
-  if (!Array.isArray(week) || !week.length) { list.innerHTML = ''; lockWorkoutRows(); return; }
-  const todayIndex = (new Date().getDay() + 6) % 7;
+  // Use plan week if available; otherwise build from engine/fallback so the list is never empty
+  let week = activePlan?.week;
+  if (!Array.isArray(week) || !week.length) {
+    const engine = window.FitlyWorkoutEngine;
+    const profile = state.profile || {};
+    const adaptation = state.progressAnalysis || analyzeProgress(state.progressLogs, profile);
+    week = engine
+      ? engine.buildWeek(profile, state.preferences, adaptation)
+      : dayNames.map((day) => ({ day, title: (fallbackWorkouts[day] || fallbackWorkouts.Tuesday).title, split: 'Full body', type: (fallbackWorkouts[day] || fallbackWorkouts.Tuesday).type, focus: '', duration: (fallbackWorkouts[day] || fallbackWorkouts.Tuesday).duration || 30, isTraining: day !== 'Sunday' }));
+  }
+  if (!week.length) { list.innerHTML = ''; lockWorkoutRows(); return; }
+  const today = startOfDay();
   list.innerHTML = week.map((entry, index) => {
     const isToday = entry.day === activeDay;
-    const entryIndex = dayNames.indexOf(entry.day);
-    const isFuture = entryIndex > todayIndex;
+    const entryDate = startOfDay(dayDate(entry.day));
+    const isFuture = entryDate > today;
     const isStarted = Boolean(state.workouts[entry.day]?.startedAt);
     const isCompleted = Boolean(state.workouts[entry.day]?.completedAt);
     const iconClass = ['blue-workout', 'coral-workout', 'mint-workout', 'yellow-workout'][index % 4];
