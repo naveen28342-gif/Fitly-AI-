@@ -676,23 +676,27 @@ function decorateExerciseCompletion() {
   const list = $('#exercise-detail-list');
   const exercises = activePlan?.workout?.exercises || [];
   if (!list) return;
+  const workoutCompleted = Boolean(state.workouts[activeDay]?.completedAt);
   $$('.exercise-detail-item', list).forEach((card, index) => {
     const exercise = exercises[index];
     if (!exercise) return;
     const key = exerciseCompletionKey(activeDay, exercise, index);
-    const done = Boolean(state.exerciseCompletion[key]?.completedAt);
-    const workoutCompleted = Boolean(state.workouts[activeDay]?.completedAt);
+    // If the whole workout is completed, treat every exercise as done
+    const done = workoutCompleted || Boolean(state.exerciseCompletion[key]?.completedAt);
     card.classList.toggle('is-complete', done);
-    const kind = card.querySelector('.exercise-kind');
-    const button = document.createElement('button');
-    button.type = 'button';
+    // Avoid adding a duplicate button on re-renders
+    let button = card.querySelector('.exercise-complete');
+    if (!button) {
+      button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.exerciseIndex = String(index);
+      button.innerHTML = '<svg class="icon"><use href="#icon-check"/></svg>';
+      card.querySelector('.exercise-kind')?.after(button);
+    }
     button.className = `exercise-complete ${done ? 'is-complete' : ''}`;
-    button.dataset.exerciseIndex = String(index);
     button.setAttribute('aria-pressed', String(done));
     button.setAttribute('aria-label', done ? `Mark ${exercise.name} incomplete` : `Mark ${exercise.name} complete`);
     button.disabled = workoutCompleted;
-    button.innerHTML = '<svg class="icon"><use href="#icon-check"/></svg>';
-    kind?.after(button);
   });
 }
 function renderExercisePreview() {
