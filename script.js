@@ -281,6 +281,19 @@ function inCurrentWeek(value) {
   end.setDate(end.getDate() + 7);
   return date >= start && date < end;
 }
+// Returns true only if the workout stored for `day` has a completedAt timestamp
+// that actually falls on the same calendar date as that day in the current week.
+function isWorkoutCompletedOnDate(day, targetDate) {
+  const log = state.workouts[day];
+  if (!log?.completedAt) return false;
+  return dateKey(log.completedAt) === dateKey(targetDate);
+}
+// Returns true only if the workout stored for `day` was started on `targetDate`.
+function isWorkoutStartedOnDate(day, targetDate) {
+  const log = state.workouts[day];
+  if (!log?.startedAt) return false;
+  return dateKey(log.startedAt) === dateKey(targetDate);
+}
 function inRecentDays(value, days = 7) {
   const date = startOfDay(value);
   const start = startOfDay();
@@ -295,7 +308,12 @@ function workoutElapsedSeconds(log = {}, now = Date.now()) {
 }
 function workoutExerciseStatus(day = activeDay) {
   const exercises = activePlan?.workout?.exercises || [];
-  const completed = exercises.reduce((count, exercise, index) => count + (state.exerciseCompletion[exerciseCompletionKey(day, exercise, index)]?.completedAt ? 1 : 0), 0);
+  const todayKey = dateKey();
+  const completed = exercises.reduce((count, exercise, index) => {
+    const log = state.exerciseCompletion[exerciseCompletionKey(day, exercise, index)];
+    // Only count exercises completed today to avoid stale ticks from previous weeks
+    return count + (log?.completedAt && dateKey(log.completedAt) === todayKey ? 1 : 0);
+  }, 0);
   return { total: exercises.length, completed, allComplete: exercises.length > 0 && completed === exercises.length };
 }
 function mealCompletionSnapshot() {
@@ -352,7 +370,10 @@ function renderLiveProgress() {
   $('.streak-copy strong').textContent = `${stats.streak} day streak`;
   $('.streak-copy p').textContent = stats.todayWorkout ? 'Workout complete today. Keep the rhythm going.' : stats.todayExercises ? `${stats.todayExercises}/${stats.exerciseTarget} exercises checked today.` : stats.streak ? 'Complete today\'s session to keep the streak going.' : 'Complete a workout to start your live streak.';
   $$('.mini-days span').forEach((day, index) => day.classList.toggle('is-done', stats.workoutDates.has(stats.dailyBars[index]?.key)));
-  $$('.day-tab').forEach((tab) => tab.classList.toggle('is-complete', Boolean(state.workouts[tab.dataset.day]?.completedAt)));
+  $$('.day-tab').forEach((tab) => {
+    const tabDate = weekDateAt(dayNames.indexOf(tab.dataset.day));
+    tab.classList.toggle('is-complete', isWorkoutCompletedOnDate(tab.dataset.day, tabDate));
+  });
   const glanceTrend = $('.glance-card .trend-up');
   if (glanceTrend) glanceTrend.textContent = `${stats.weeklyScore}% score`;
   $$('.glance-card .bar-set span').forEach((bar, index) => { bar.style.height = `${Math.max(6, stats.dailyBars[index]?.value || 0)}%`; bar.classList.toggle('bar-active', stats.dailyBars[index]?.key === stats.todayKey && stats.dailyBars[index]?.value > 0); });
@@ -676,13 +697,16 @@ function decorateExerciseCompletion() {
   const list = $('#exercise-detail-list');
   const exercises = activePlan?.workout?.exercises || [];
   if (!list) return;
-  const workoutCompleted = Boolean(state.workouts[activeDay]?.completedAt);
+  const activeDayDate = weekDateAt(dayNames.indexOf(activeDay));
+  const workoutCompleted = isWorkoutCompletedOnDate(activeDay, activeDayDate);
   $$('.exercise-detail-item', list).forEach((card, index) => {
     const exercise = exercises[index];
     if (!exercise) return;
     const key = exerciseCompletionKey(activeDay, exercise, index);
-    // If the whole workout is completed, treat every exercise as done
-    const done = workoutCompleted || Boolean(state.exerciseCompletion[key]?.completedAt);
+    // If the whole workout is completed today, treat every exercise as done
+    const exerciseLog = state.exerciseCompletion[key];
+    const exerciseDoneToday = exerciseLog?.completedAt && dateKey(exerciseLog.completedAt) === dateKey(activeDayDate);
+    const done = workoutCompleted || Boolean(exerciseDoneToday);
     card.classList.toggle('is-complete', done);
     // Avoid adding a duplicate button on re-renders
     let button = card.querySelector('.exercise-complete');
@@ -729,8 +753,7 @@ function renderWorkoutLibrary() {
       const entryDate = startOfDay(entry.date);
       const dateKeyValue = dateKey(entryDate);
       const isFuture = entryDate > today;
-      const workoutLog = state.workouts[entry.day] || {};
-      const isCompleted = !isFuture && Boolean(workoutLog.completedAt);
+      const isCompleted = !isFuture && isWorkoutCompletedOnDate(entry.day, entryDate);
       const isToday = dateKeyValue === dateKey(today);
       const isSelected = entry.day === activeDay && isToday;
       const iconClass = ['blue-workout', 'coral-workout', 'mint-workout', 'yellow-workout'][index % 4];
@@ -769,8 +792,8 @@ function renderWorkoutLibrary() {
     const isToday = entry.day === activeDay;
     const entryDate = startOfDay(dayDate(entry.day));
     const isFuture = entryDate > today;
-    const isStarted = Boolean(state.workouts[entry.day]?.startedAt);
-    const isCompleted = Boolean(state.workouts[entry.day]?.completedAt);
+    const isCompleted = isWorkoutCompletedOnDate(entry.day, entryDate);
+    const isStarted = !isCompleted && isWorkoutStartedOnDate(entry.day, entryDate);
     const iconClass = ['blue-workout', 'coral-workout', 'mint-workout', 'yellow-workout'][index % 4];
     const status = isCompleted ? 'Completed' : isStarted ? 'In progress' : isToday ? 'Today' : isFuture ? 'Locked' : entry.isTraining ? 'Planned' : 'Recovery';
     return `<button class="workout-library-row workout-select ${isToday ? 'is-selected' : ''} ${isCompleted ? 'is-complete' : ''} ${isFuture ? 'is-locked' : ''}" data-day="${escapeHtml(entry.day)}" data-workout="${escapeHtml(entry.title)}"${isFuture ? ' disabled title="Future days are not yet accessible"' : ''}><span class="library-day">${escapeHtml(entry.day.slice(0, 3).toUpperCase())}<strong>${dayDate(entry.day).getDate()}</strong></span><span class="library-workout-icon ${iconClass}"><svg class="icon"><use href="#icon-${entry.isTraining ? 'dumbbell' : 'leaf'}"/></svg></span><span class="library-copy"><strong>${escapeHtml(entry.title)}</strong><small>${escapeHtml(entry.focus || entry.split)} <i>•</i> ${escapeHtml(entry.duration)} min <i>•</i> ${escapeHtml(entry.type)}</small></span><span class="library-status ${isStarted || isCompleted ? 'completed' : ''}">${status}</span><svg class="icon library-arrow"><use href="#icon-arrow"/></svg></button>`;
@@ -795,8 +818,9 @@ function renderWorkout() {
     nextWorkout.querySelector('p').textContent = workout.description;
   }
   const workoutLog = state.workouts[activeDay] || {};
-  const isCompleted = Boolean(workoutLog.completedAt);
-  const isStarted = Boolean((workoutLog.startedAt || workoutLog.startedDate) && !isCompleted);
+  const activeDayDate = weekDateAt(dayNames.indexOf(activeDay));
+  const isCompleted = isWorkoutCompletedOnDate(activeDay, activeDayDate);
+  const isStarted = !isCompleted && isWorkoutStartedOnDate(activeDay, activeDayDate);
   const isPaused = isStarted && Boolean(workoutLog.pausedAt && !workoutLog.activeStartedAt);
   const exerciseStatus = workoutExerciseStatus(activeDay);
   $$('.start-workout').forEach((button) => {
@@ -1339,11 +1363,13 @@ function updateWorkoutTimer() {
 }
 $$('.start-workout').forEach((button) => button.addEventListener('click', () => {
   const current = state.workouts[activeDay] || {};
-  if (current.completedAt) return;
+  const activeDayDate = weekDateAt(dayNames.indexOf(activeDay));
+  const alreadyCompletedToday = isWorkoutCompletedOnDate(activeDay, activeDayDate);
+  if (alreadyCompletedToday) return;
   const now = Date.now();
   const status = workoutExerciseStatus(activeDay);
-  const isStarted = Boolean(current.startedAt || current.startedDate);
-  const isPaused = Boolean(current.pausedAt && !current.activeStartedAt);
+  const isStarted = isWorkoutStartedOnDate(activeDay, activeDayDate);
+  const isPaused = isStarted && Boolean(current.pausedAt && !current.activeStartedAt);
   if (!isStarted) {
     state.workouts[activeDay] = { startedAt: now, activeStartedAt: now, elapsedSeconds: 0, startedDate: new Date(now).toISOString() };
     trackEvent('workout_started', { day: activeDay, startedAt: now, activeStartedAt: now, elapsedSeconds: 0 });
@@ -1375,8 +1401,12 @@ $('#exercise-detail-list')?.addEventListener('click', (event) => {
   const exercise = activePlan?.workout?.exercises?.[index];
   if (!exercise) return;
   const key = exerciseCompletionKey(activeDay, exercise, index);
-  const completed = !state.exerciseCompletion[key]?.completedAt;
-  const date = dayDate(activeDay).toISOString();
+  const todayDateStr = new Date().toISOString();
+  const existingLog = state.exerciseCompletion[key];
+  // Toggle: only treat as completed if it was completed today
+  const alreadyDoneToday = existingLog?.completedAt && dateKey(existingLog.completedAt) === dateKey();
+  const completed = !alreadyDoneToday;
+  const date = todayDateStr;
   if (completed) state.exerciseCompletion[key] = { completedAt: date, exercise: exercise.name, day: activeDay };
   else delete state.exerciseCompletion[key];
   syncActivity({ id: `exercise-${key}`, type: 'exercise', day: activeDay, exercise: exercise.name, index, date, completed });
