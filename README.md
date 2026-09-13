@@ -1,3 +1,6 @@
+https://fitly-production-a49.up.railway.app/
+
+
 # Fitly — Personalized Workout & Diet Planner
 
 Fitly is a runnable student-focused fitness planner. It combines a weekly movement plan, culturally familiar budget-aware meals, progress signals, persisted user preferences, a live workout timer, and a backend-ready AI assistant.
